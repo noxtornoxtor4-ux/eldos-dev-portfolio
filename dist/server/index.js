@@ -51,20 +51,32 @@ async function handleChat(request, env) {
 
 	const message = typeof payload.message === 'string' ? payload.message.trim() : '';
 	const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+	const phone = typeof payload.phone === 'string' ? payload.phone.trim() : '';
 	const website = typeof payload.website === 'string' ? payload.website.trim() : '';
+	const reply = assistantReply(message || 'сообщение');
 
-	if (website) return json({ ok: true, reply: assistantReply(message || 'сообщение') });
+	if (website) return json({ ok: true, reply });
 	if (message.length < 2 || message.length > 1200) {
 		return json({ ok: false, error: 'Message must contain 2–1200 characters' }, 400);
 	}
-	if (name.length > 80) return json({ ok: false, error: 'Name is too long' }, 400);
+	if (name.length < 2 || name.length > 80) {
+		return json({ ok: false, error: 'Valid name is required' }, 400);
+	}
+	const phoneDigits = phone.replace(/\D/g, '');
+	if (phone.length > 32 || phoneDigits.length < 7 || phoneDigits.length > 15) {
+		return json({ ok: false, error: 'Valid phone number is required' }, 400);
+	}
 
 	const referer = request.headers.get('referer') || 'eldos.dev';
 	const telegramText = [
 		'<b>✦ Новое обращение с eldos.dev</b>',
 		'',
-		`<b>От:</b> ${escapeHtml(name || 'Не представился')}`,
-		`<b>Сообщение:</b>\n${escapeHtml(message)}`,
+		`<b>Контакт:</b> ${escapeHtml(name)}`,
+		`<b>Телефон:</b> <code>${escapeHtml(phone)}</code>`,
+		'',
+		`<b>Сообщение посетителя:</b>\n${escapeHtml(message)}`,
+		'',
+		`<b>Ответ E/D Assistant:</b>\n${escapeHtml(reply)}`,
 		'',
 		`<b>Страница:</b> ${escapeHtml(referer.slice(0, 300))}`,
 		`<b>Время:</b> ${new Date().toISOString()}`
@@ -88,7 +100,7 @@ async function handleChat(request, env) {
 		return json({ ok: false, error: 'Message delivery failed' }, 502);
 	}
 
-	return json({ ok: true, reply: assistantReply(message) });
+	return json({ ok: true, reply });
 }
 
 const worker = {
