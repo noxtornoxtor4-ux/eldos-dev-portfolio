@@ -8,8 +8,8 @@ const jsonHeaders = {
  *   SUPABASE_URL?: string;
  *   SUPABASE_ANON_KEY?: string;
  *   SUPABASE_SERVICE_ROLE_KEY?: string;
- *   OPENAI_API_KEY?: string;
- *   OPENAI_MODEL?: string;
+ *   GROQ_API_KEY?: string;
+ *   GROQ_MODEL?: string;
  *   TELEGRAM_BOT_TOKEN?: string;
  *   TELEGRAM_CHAT_ID?: string;
  *   ASSETS: { fetch(request: Request): Promise<Response> };
@@ -17,9 +17,9 @@ const jsonHeaders = {
  * @typedef {{ id: string; email: string; email_confirmed_at?: string | null }} AuthUser
  * @typedef {{ id: string; name: string; phone: string }} ProfileRow
  * @typedef {{ role: 'user' | 'assistant'; content: string }} MessageRow
- * @typedef {{ type?: string; text?: unknown }} OpenAIContent
- * @typedef {{ content?: OpenAIContent[] }} OpenAIOutput
- * @typedef {{ output_text?: unknown; output?: OpenAIOutput[] }} OpenAIResponsePayload
+ * @typedef {{ type?: string; text?: unknown }} ResponseContent
+ * @typedef {{ content?: ResponseContent[] }} ResponseOutput
+ * @typedef {{ output_text?: unknown; output?: ResponseOutput[] }} ResponsePayload
  */
 
 class HttpError extends Error {
@@ -62,7 +62,7 @@ async function loadRecentMessages(env, userId) {
 
 /** @param {unknown} payload */
 function extractResponseText(payload) {
-	const data = /** @type {OpenAIResponsePayload} */ (
+	const data = /** @type {ResponsePayload} */ (
 		payload && typeof payload === 'object' ? payload : {}
 	);
 	if (typeof data.output_text === 'string') return data.output_text.trim();
@@ -86,15 +86,15 @@ function constrainReply(reply) {
 
 /** @param {Env} env @param {string} message @param {MessageRow[]} history */
 async function generateAssistantReply(env, message, history) {
-	if (!env.OPENAI_API_KEY) throw new HttpError(503, 'AI service is not configured');
-	const response = await fetch('https://api.openai.com/v1/responses', {
+	if (!env.GROQ_API_KEY) throw new HttpError(503, 'AI service is not configured');
+	const response = await fetch('https://api.groq.com/openai/v1/responses', {
 		method: 'POST',
 		headers: {
-			authorization: `Bearer ${env.OPENAI_API_KEY}`,
+			authorization: `Bearer ${env.GROQ_API_KEY}`,
 			'content-type': 'application/json'
 		},
 		body: JSON.stringify({
-			model: env.OPENAI_MODEL || 'gpt-5.4-mini',
+			model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
 			instructions: assistantInstructions,
 			input: [...history, { role: 'user', content: message }],
 			max_output_tokens: 500

@@ -19,8 +19,8 @@ const env = {
 	SUPABASE_URL: 'https://project.supabase.co',
 	SUPABASE_ANON_KEY: 'public-anon-key',
 	SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_server-key',
-	OPENAI_API_KEY: 'openai-server-secret',
-	OPENAI_MODEL: 'gpt-5.4-mini',
+	GROQ_API_KEY: 'groq-server-secret',
+	GROQ_MODEL: 'llama-3.3-70b-versatile',
 	TELEGRAM_BOT_TOKEN: 'telegram-secret-token',
 	TELEGRAM_CHAT_ID: '5892009410',
 	ASSETS: { fetch: vi.fn() }
@@ -74,6 +74,7 @@ describe('Sites worker account APIs', () => {
 			supabaseAnonKey: env.SUPABASE_ANON_KEY
 		});
 		expect(JSON.stringify(data)).not.toContain(env.SUPABASE_SERVICE_ROLE_KEY);
+		expect(JSON.stringify(data)).not.toContain(env.GROQ_API_KEY);
 	});
 
 	it('rejects chat messages without an authenticated session', async () => {
@@ -104,7 +105,7 @@ describe('Sites worker account APIs', () => {
 				]);
 			}
 			if (url.includes('/rest/v1/chat_messages?')) return Response.json(previousMessages);
-			if (url === 'https://api.openai.com/v1/responses') {
+			if (url === 'https://api.groq.com/openai/v1/responses') {
 				return Response.json({
 					output: [
 						{
@@ -145,15 +146,15 @@ describe('Sites worker account APIs', () => {
 		expect(contextUrl).toContain('order=created_at.desc');
 		expect(contextUrl).toContain('limit=12');
 
-		const openAiCall = fetchMock.mock.calls.find(
-			([url]) => String(url) === 'https://api.openai.com/v1/responses'
+		const groqCall = fetchMock.mock.calls.find(
+			([url]) => String(url) === 'https://api.groq.com/openai/v1/responses'
 		);
-		expect(openAiCall).toBeDefined();
-		const openAiHeaders = new Headers(openAiCall?.[1]?.headers);
-		const openAiBody = JSON.parse(String(openAiCall?.[1]?.body));
-		expect(openAiHeaders.get('authorization')).toBe(`Bearer ${env.OPENAI_API_KEY}`);
-		expect(openAiBody.model).toBe('gpt-5.4-mini');
-		expect(openAiBody.input).toEqual([
+		expect(groqCall).toBeDefined();
+		const groqHeaders = new Headers(groqCall?.[1]?.headers);
+		const groqBody = JSON.parse(String(groqCall?.[1]?.body));
+		expect(groqHeaders.get('authorization')).toBe(`Bearer ${env.GROQ_API_KEY}`);
+		expect(groqBody.model).toBe('llama-3.3-70b-versatile');
+		expect(groqBody.input).toEqual([
 			{ role: 'user', content: 'Предыдущий вопрос' },
 			{ role: 'assistant', content: 'Предыдущий ответ' },
 			{ role: 'user', content: 'Хочу обсудить проект' }
@@ -187,7 +188,7 @@ describe('Sites worker account APIs', () => {
 		expect(aiReply).not.toMatch(/Telegram|передал Эльдосу|24 час/i);
 	});
 
-	it('rejects authenticated chat when OpenAI is not configured', async () => {
+	it('rejects authenticated chat when Groq is not configured', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
@@ -207,16 +208,16 @@ describe('Sites worker account APIs', () => {
 				headers: authHeaders({ 'content-type': 'application/json' }),
 				body: JSON.stringify({ message: 'Расскажи о разработке' })
 			}),
-			{ ...env, OPENAI_API_KEY: undefined }
+			{ ...env, GROQ_API_KEY: undefined }
 		);
 
 		expect(response.status).toBe(503);
-		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('api.openai.com'))).toBe(
+		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('api.groq.com'))).toBe(
 			false
 		);
 	});
 
-	it('returns a generic error for an empty OpenAI response', async () => {
+	it('returns a generic error for an empty Groq response', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
@@ -226,7 +227,9 @@ describe('Sites worker account APIs', () => {
 				]);
 			}
 			if (url.includes('/rest/v1/chat_messages?')) return Response.json([]);
-			if (url === 'https://api.openai.com/v1/responses') return Response.json({ output: [] });
+			if (url === 'https://api.groq.com/openai/v1/responses') {
+				return Response.json({ output: [] });
+			}
 			return new Response(null, { status: 404 });
 		});
 		vi.stubGlobal('fetch', fetchMock);
@@ -243,13 +246,13 @@ describe('Sites worker account APIs', () => {
 		expect(response.status).toBe(502);
 		expect(
 			fetchMock.mock.calls.some(
-				([url]) => String(url) === 'https://api.openai.com/v1/responses'
+				([url]) => String(url) === 'https://api.groq.com/openai/v1/responses'
 			)
 		).toBe(true);
 		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('api.telegram.org'))).toBe(
 			false
 		);
-		expect(JSON.stringify(await response.json())).not.toContain(env.OPENAI_API_KEY);
+		expect(JSON.stringify(await response.json())).not.toContain(env.GROQ_API_KEY);
 	});
 
 	it('loads history only for the verified user', async () => {
