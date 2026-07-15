@@ -9,7 +9,7 @@
 <main class="legal-page">
 	<div class="legal-page__grid" aria-hidden="true"></div>
 	<article class="legal-page__card">
-		<header><a href="/">← ELDOS.DEV</a><span>PRIVACY / 2026-07-15</span></header>
+		<header><a href="/">← ELDOS.DEV</a><span>PRIVACY / 2026-07-16</span></header>
 		<p class="legal-page__eyebrow">SECURE DATA PROTOCOL</p>
 		<h1>Политика конфиденциальности</h1>
 		<p class="legal-page__lead">
@@ -39,6 +39,17 @@
 		<section>
 			<span>03</span>
 			<div>
+				<h2>Ответы нейросети</h2>
+				<p>
+					Ваш вопрос и последние сообщения из истории передаются OpenAI только для создания
+					ответа E/D Assistant. Имя, телефон, пароль и токены доступа в запрос модели не
+					включаются.
+				</p>
+			</div>
+		</section>
+		<section>
+			<span>04</span>
+			<div>
 				<h2>Передача в Telegram</h2>
 				<p>
 					Когда вы отправляете сообщение ассистенту, Эльдос получает в Telegram ваше имя, email,
@@ -47,7 +58,7 @@
 			</div>
 		</section>
 		<section>
-			<span>04</span>
+			<span>05</span>
 			<div>
 				<h2>Supabase</h2>
 				<p>
@@ -57,7 +68,7 @@
 			</div>
 		</section>
 		<section>
-			<span>05</span>
+			<span>06</span>
 			<div>
 				<h2>Удаление данных</h2>
 				<p>
@@ -67,7 +78,7 @@
 			</div>
 		</section>
 		<section>
-			<span>06</span>
+			<span>07</span>
 			<div>
 				<h2>Связь</h2>
 				<p>

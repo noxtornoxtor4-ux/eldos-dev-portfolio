@@ -17,6 +17,9 @@ const jsonHeaders = {
  * @typedef {{ id: string; email: string; email_confirmed_at?: string | null }} AuthUser
  * @typedef {{ id: string; name: string; phone: string }} ProfileRow
  * @typedef {{ role: 'user' | 'assistant'; content: string }} MessageRow
+ * @typedef {{ type?: string; text?: unknown }} OpenAIContent
+ * @typedef {{ content?: OpenAIContent[] }} OpenAIOutput
+ * @typedef {{ output_text?: unknown; output?: OpenAIOutput[] }} OpenAIResponsePayload
  */
 
 class HttpError extends Error {
@@ -57,16 +60,22 @@ async function loadRecentMessages(env, userId) {
 	return Array.isArray(rows) ? rows.reverse() : [];
 }
 
-/** @param {any} payload */
+/** @param {unknown} payload */
 function extractResponseText(payload) {
-	if (typeof payload?.output_text === 'string') return payload.output_text.trim();
-	if (!Array.isArray(payload?.output)) return '';
-	return payload.output
-		.flatMap((item) => (Array.isArray(item?.content) ? item.content : []))
-		.filter((item) => item?.type === 'output_text' && typeof item.text === 'string')
-		.map((item) => item.text)
-		.join('\n')
-		.trim();
+	const data = /** @type {OpenAIResponsePayload} */ (
+		payload && typeof payload === 'object' ? payload : {}
+	);
+	if (typeof data.output_text === 'string') return data.output_text.trim();
+	if (!Array.isArray(data.output)) return '';
+	/** @type {string[]} */
+	const parts = [];
+	for (const output of data.output) {
+		if (!Array.isArray(output.content)) continue;
+		for (const item of output.content) {
+			if (item.type === 'output_text' && typeof item.text === 'string') parts.push(item.text);
+		}
+	}
+	return parts.join('\n').trim();
 }
 
 /** @param {string} reply */
