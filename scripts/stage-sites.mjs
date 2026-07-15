@@ -1,4 +1,4 @@
-import { cpSync, copyFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { cpSync, copyFileSync, mkdirSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = process.cwd();
@@ -16,3 +16,5 @@ for (const entry of readdirSync(cloudflare, { withFileTypes: true })) {
 	if (entry.name === '_worker.js') continue;
 	cpSync(join(cloudflare, entry.name), join(dist, 'client', entry.name), { recursive: true });
 }
+
+renameSync(join(dist, 'client', 'index.html'), join(dist, 'client', 'site.html'));

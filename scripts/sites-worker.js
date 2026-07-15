@@ -98,6 +98,10 @@ const worker = {
 		if (url.pathname === '/api/chat') {
 			return handleChat(request, env);
 		}
+		if (url.pathname === '/') {
+			url.pathname = '/site.html';
+			return env.ASSETS.fetch(new Request(url, request));
+		}
 
 		return env.ASSETS.fetch(request);
 	}
