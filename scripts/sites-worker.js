@@ -8,12 +8,15 @@ const jsonHeaders = {
  *   SUPABASE_URL?: string;
  *   SUPABASE_ANON_KEY?: string;
  *   SUPABASE_SERVICE_ROLE_KEY?: string;
+ *   OPENAI_API_KEY?: string;
+ *   OPENAI_MODEL?: string;
  *   TELEGRAM_BOT_TOKEN?: string;
  *   TELEGRAM_CHAT_ID?: string;
  *   ASSETS: { fetch(request: Request): Promise<Response> };
  * }} Env
  * @typedef {{ id: string; email: string; email_confirmed_at?: string | null }} AuthUser
  * @typedef {{ id: string; name: string; phone: string }} ProfileRow
+ * @typedef {{ role: 'user' | 'assistant'; content: string }} MessageRow
  */
 
 class HttpError extends Error {
@@ -34,21 +37,64 @@ function escapeHtml(value) {
 	return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-/** @param {string} message */
-function assistantReply(message) {
-	const text = message.toLowerCase();
+const assistantInstructions = [
+	'Ты E/D Assistant — дружелюбный AI-помощник на портфолио разработчика Эльдоса.',
+	'Отвечай на языке пользователя, естественно, полезно и кратко.',
+	'Если для точного ответа не хватает данных, задай один понятный уточняющий вопрос.',
+	'Не говори, что сообщение пересылается в Telegram или Эльдосу.',
+	'Не обещай, что Эльдос ответит позже, и не выдумывай личные факты о нём.',
+	'Ограничь ответ 900 символами.'
+].join(' ');
 
-	if (/цен|стоим|бюджет|сколько/.test(text)) {
-		return 'Стоимость зависит от масштаба и сроков. Эльдос уже получил сообщение и вернётся с уточняющими вопросами, чтобы дать честную оценку.';
-	}
-	if (/срок|когда|быстро|время/.test(text)) {
-		return 'Небольшой MVP обычно можно спланировать за несколько недель. Эльдос получил запрос и поможет определить реалистичный срок именно для вашей задачи.';
-	}
-	if (/стек|технолог|svelte|node|backend|frontend/.test(text)) {
-		return 'Основной стек — SvelteKit, TypeScript, Node.js и PostgreSQL. Конкретные технологии Эльдос подбирает под продукт, а не наоборот. Ваш вопрос уже отправлен ему.';
-	}
+/** @param {Env} env @param {string} userId */
+async function loadRecentMessages(env, userId) {
+	const response = await serviceRequest(
+		env,
+		`/rest/v1/chat_messages?user_id=eq.${encodeURIComponent(userId)}&select=role,content&order=created_at.desc&limit=12`
+	);
+	/** @type {MessageRow[]} */
+	const rows = await response.json();
+	return Array.isArray(rows) ? rows.reverse() : [];
+}
 
-	return 'Принял сообщение и передал его Эльдосу в Telegram. Обычно он отвечает в течение 24 часов.';
+/** @param {any} payload */
+function extractResponseText(payload) {
+	if (typeof payload?.output_text === 'string') return payload.output_text.trim();
+	if (!Array.isArray(payload?.output)) return '';
+	return payload.output
+		.flatMap((item) => (Array.isArray(item?.content) ? item.content : []))
+		.filter((item) => item?.type === 'output_text' && typeof item.text === 'string')
+		.map((item) => item.text)
+		.join('\n')
+		.trim();
+}
+
+/** @param {string} reply */
+function constrainReply(reply) {
+	if (reply.length <= 1200) return reply;
+	return `${reply.slice(0, 1199).trimEnd()}…`;
+}
+
+/** @param {Env} env @param {string} message @param {MessageRow[]} history */
+async function generateAssistantReply(env, message, history) {
+	if (!env.OPENAI_API_KEY) throw new HttpError(503, 'AI service is not configured');
+	const response = await fetch('https://api.openai.com/v1/responses', {
+		method: 'POST',
+		headers: {
+			authorization: `Bearer ${env.OPENAI_API_KEY}`,
+			'content-type': 'application/json'
+		},
+		body: JSON.stringify({
+			model: env.OPENAI_MODEL || 'gpt-5.4-mini',
+			instructions: assistantInstructions,
+			input: [...history, { role: 'user', content: message }],
+			max_output_tokens: 500
+		})
+	});
+	if (!response.ok) throw new HttpError(502, 'AI service is temporarily unavailable');
+	const reply = extractResponseText(await response.json());
+	if (!reply) throw new HttpError(502, 'AI service returned an empty response');
+	return constrainReply(reply);
 }
 
 /** @param {Env} env @param {boolean} includeServiceRole */
@@ -207,13 +253,16 @@ async function handleChat(request, env) {
 
 	const message = typeof payload.message === 'string' ? payload.message.trim() : '';
 	const website = typeof payload.website === 'string' ? payload.website.trim() : '';
-	const reply = assistantReply(message || 'сообщение');
-	if (website) return json({ ok: true, reply });
+	if (website) return json({ ok: true, reply: 'Спасибо.' });
 	if (message.length < 2 || message.length > 1200) {
 		throw new HttpError(400, 'Message must contain 2–1200 characters');
 	}
 
-	const profile = await loadProfile(env, user.id);
+	const [profile, history] = await Promise.all([
+		loadProfile(env, user.id),
+		loadRecentMessages(env, user.id)
+	]);
+	const reply = await generateAssistantReply(env, message, history);
 	await serviceRequest(env, '/rest/v1/chat_messages', {
 		method: 'POST',
 		headers: { prefer: 'return=minimal' },
