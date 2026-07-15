@@ -18,7 +18,7 @@ const user = {
 const env = {
 	SUPABASE_URL: 'https://project.supabase.co',
 	SUPABASE_ANON_KEY: 'public-anon-key',
-	SUPABASE_SERVICE_ROLE_KEY: 'server-service-role-key',
+	SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_server-key',
 	TELEGRAM_BOT_TOKEN: 'telegram-secret-token',
 	TELEGRAM_CHAT_ID: '5892009410',
 	ASSETS: { fetch: vi.fn() }
@@ -117,6 +117,9 @@ describe('Sites worker account APIs', () => {
 		expect(inserted).toHaveLength(2);
 		expect(inserted.map((entry: { user_id: string }) => entry.user_id)).toEqual([user.id, user.id]);
 		expect(inserted.map((entry: { role: string }) => entry.role)).toEqual(['user', 'assistant']);
+		const insertHeaders = new Headers(insertCall?.[1]?.headers);
+		expect(insertHeaders.get('apikey')).toBe(env.SUPABASE_SERVICE_ROLE_KEY);
+		expect(insertHeaders.get('authorization')).toBe(`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`);
 
 		const telegramCall = fetchMock.mock.calls.find(([url]) =>
 			String(url).includes('api.telegram.org')
