@@ -29,3 +29,17 @@ export function validateRegistration(input: RegistrationInput) {
 export function validateEmail(email: string) {
 	return emailPattern.test(email.trim()) ? null : 'Введите корректный email.';
 }
+
+export function getAuthErrorMessage(message: string) {
+	const normalized = message.toLowerCase();
+
+	if (normalized.includes('invalid login credentials')) return 'Неверный email или пароль.';
+	if (normalized.includes('email not confirmed')) return 'Сначала подтвердите email по ссылке из письма.';
+	if (normalized.includes('already registered') || normalized.includes('already been registered')) {
+		return 'Аккаунт с таким email уже существует.';
+	}
+	if (normalized.includes('rate limit')) return 'Слишком много попыток. Попробуйте немного позже.';
+	if (normalized.includes('expired')) return 'Ссылка устарела. Запросите новое письмо.';
+
+	return 'Не удалось выполнить запрос. Попробуйте ещё раз.';
+}

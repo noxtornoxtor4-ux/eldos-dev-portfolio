@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { validatePassword, validateRegistration } from '../src/lib/features/auth/model/validation';
+import {
+	getAuthErrorMessage,
+	validatePassword,
+	validateRegistration
+} from '../src/lib/features/auth/model/validation';
 
 describe('validateRegistration', () => {
 	it('accepts the agreed registration shape', () => {
@@ -35,5 +39,13 @@ describe('validateRegistration', () => {
 	it('requires at least eight password characters', () => {
 		expect(validatePassword('1234567')).toBe('Пароль должен содержать минимум 8 символов.');
 		expect(validatePassword('12345678')).toBeNull();
+	});
+
+	it('maps provider errors to safe Russian copy', () => {
+		expect(getAuthErrorMessage('Invalid login credentials')).toBe('Неверный email или пароль.');
+		expect(getAuthErrorMessage('User already registered')).toBe('Аккаунт с таким email уже существует.');
+		expect(getAuthErrorMessage('internal database details')).toBe(
+			'Не удалось выполнить запрос. Попробуйте ещё раз.'
+		);
 	});
 });
