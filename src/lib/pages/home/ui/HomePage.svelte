@@ -1,5 +1,6 @@
 <script lang="ts">
 	import About from '$lib/widgets/about/ui/About.svelte';
+	import AiAssistant from '$lib/features/ai-assistant/ui/AiAssistant.svelte';
 	import Contact from '$lib/widgets/contact/ui/Contact.svelte';
 	import Expertise from '$lib/widgets/expertise/ui/Expertise.svelte';
 	import Footer from '$lib/widgets/footer/ui/Footer.svelte';
@@ -30,4 +31,5 @@
 		<Contact />
 	</main>
 	<Footer />
+	<AiAssistant />
 </div>
