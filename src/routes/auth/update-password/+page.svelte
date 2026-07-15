@@ -49,12 +49,37 @@
 </script>
 
 <main class="auth-callback">
-	<form class="auth-callback__card" onsubmit={(event) => { event.preventDefault(); updatePassword(); }}>
-		<span>PASSWORD RECOVERY</span><h1>Новый пароль</h1>
+	<form
+		class="auth-callback__card"
+		onsubmit={(event) => {
+			event.preventDefault();
+			updatePassword();
+		}}
+	>
+		<span>PASSWORD RECOVERY</span>
+		<h1>Новый пароль</h1>
 		{#if isReady}
-			<label><span>Пароль</span><input bind:value={password} type="password" autocomplete="new-password" minlength="8" required /></label>
-			<label><span>Повторите пароль</span><input bind:value={confirmation} type="password" autocomplete="new-password" minlength="8" required /></label>
-			<button type="submit" disabled={isSubmitting}>{isSubmitting ? 'СОХРАНЯЕМ...' : 'СОХРАНИТЬ ПАРОЛЬ'}</button>
+			<label
+				><span>Пароль</span><input
+					bind:value={password}
+					type="password"
+					autocomplete="new-password"
+					minlength="8"
+					required
+				/></label
+			>
+			<label
+				><span>Повторите пароль</span><input
+					bind:value={confirmation}
+					type="password"
+					autocomplete="new-password"
+					minlength="8"
+					required
+				/></label
+			>
+			<button type="submit" disabled={isSubmitting}
+				>{isSubmitting ? 'СОХРАНЯЕМ...' : 'СОХРАНИТЬ ПАРОЛЬ'}</button
+			>
 		{/if}
 		{#if error}<p role="alert">{error}</p>{/if}
 	</form>

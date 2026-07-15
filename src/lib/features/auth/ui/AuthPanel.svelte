@@ -163,30 +163,141 @@
 		</div>
 
 		{#if mode === 'signin'}
-			<form class="auth-form" onsubmit={(event) => { event.preventDefault(); signIn(); }}>
-				<div class="auth-form__intro"><span>ACCOUNT ACCESS / 01</span><h3>Войти в аккаунт</h3></div>
-				<label><span>Email</span><input bind:value={email} type="email" autocomplete="email" placeholder="you@example.com" required />{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label>
-				<label><span>Пароль</span><input bind:value={password} type="password" autocomplete="current-password" placeholder="Минимум 8 символов" required />{#if fieldErrors.password}<small>{fieldErrors.password}</small>{/if}</label>
-				<button class="auth-form__submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'ПРОВЕРЯЕМ...' : 'ВОЙТИ'} <i>↗</i></button>
-				<button class="auth-form__link" type="button" onclick={() => setMode('recover')}>Забыли пароль?</button>
+			<form
+				class="auth-form"
+				onsubmit={(event) => {
+					event.preventDefault();
+					signIn();
+				}}
+			>
+				<div class="auth-form__intro">
+					<span>ACCOUNT ACCESS / 01</span>
+					<h3>Войти в аккаунт</h3>
+				</div>
+				<label
+					><span>Email</span><input
+						bind:value={email}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						required
+					/>{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label
+				>
+				<label
+					><span>Пароль</span><input
+						bind:value={password}
+						type="password"
+						autocomplete="current-password"
+						placeholder="Минимум 8 символов"
+						required
+					/>{#if fieldErrors.password}<small>{fieldErrors.password}</small>{/if}</label
+				>
+				<button class="auth-form__submit" type="submit" disabled={isSubmitting}
+					>{isSubmitting ? 'ПРОВЕРЯЕМ...' : 'ВОЙТИ'} <i>↗</i></button
+				>
+				<button class="auth-form__link" type="button" onclick={() => setMode('recover')}
+					>Забыли пароль?</button
+				>
 			</form>
 		{:else if mode === 'signup'}
-			<form class="auth-form" onsubmit={(event) => { event.preventDefault(); signUp(); }}>
-				<div class="auth-form__intro"><span>NEW ACCOUNT / 02</span><h3>Создать аккаунт</h3></div>
-				<label><span>Имя</span><input bind:value={input.name} autocomplete="name" maxlength="80" placeholder="Как к вам обращаться?" required />{#if fieldErrors.name}<small>{fieldErrors.name}</small>{/if}</label>
-				<label><span>Email</span><input bind:value={input.email} type="email" autocomplete="email" placeholder="you@example.com" required />{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label>
-				<label><span>Телефон</span><input bind:value={input.phone} type="tel" inputmode="tel" autocomplete="tel" maxlength="32" placeholder="+7 700 000 00 00" required />{#if fieldErrors.phone}<small>{fieldErrors.phone}</small>{/if}</label>
-				<label><span>Пароль</span><input bind:value={input.password} type="password" autocomplete="new-password" minlength="8" placeholder="Минимум 8 символов" required />{#if fieldErrors.password}<small>{fieldErrors.password}</small>{/if}</label>
-				<label><span>Повторите пароль</span><input bind:value={input.passwordConfirmation} type="password" autocomplete="new-password" minlength="8" placeholder="Повторите пароль" required />{#if fieldErrors.passwordConfirmation}<small>{fieldErrors.passwordConfirmation}</small>{/if}</label>
-				<button class="auth-form__submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'СОЗДАЁМ...' : 'СОЗДАТЬ АККАУНТ'} <i>↗</i></button>
-				<p class="auth-form__privacy">Создавая аккаунт, вы принимаете <a href="/privacy" target="_blank">политику конфиденциальности</a>.</p>
+			<form
+				class="auth-form"
+				onsubmit={(event) => {
+					event.preventDefault();
+					signUp();
+				}}
+			>
+				<div class="auth-form__intro">
+					<span>NEW ACCOUNT / 02</span>
+					<h3>Создать аккаунт</h3>
+				</div>
+				<label
+					><span>Имя</span><input
+						bind:value={input.name}
+						autocomplete="name"
+						maxlength="80"
+						placeholder="Как к вам обращаться?"
+						required
+					/>{#if fieldErrors.name}<small>{fieldErrors.name}</small>{/if}</label
+				>
+				<label
+					><span>Email</span><input
+						bind:value={input.email}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						required
+					/>{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label
+				>
+				<label
+					><span>Телефон</span><input
+						bind:value={input.phone}
+						type="tel"
+						inputmode="tel"
+						autocomplete="tel"
+						maxlength="32"
+						placeholder="+7 700 000 00 00"
+						required
+					/>{#if fieldErrors.phone}<small>{fieldErrors.phone}</small>{/if}</label
+				>
+				<label
+					><span>Пароль</span><input
+						bind:value={input.password}
+						type="password"
+						autocomplete="new-password"
+						minlength="8"
+						placeholder="Минимум 8 символов"
+						required
+					/>{#if fieldErrors.password}<small>{fieldErrors.password}</small>{/if}</label
+				>
+				<label
+					><span>Повторите пароль</span><input
+						bind:value={input.passwordConfirmation}
+						type="password"
+						autocomplete="new-password"
+						minlength="8"
+						placeholder="Повторите пароль"
+						required
+					/>{#if fieldErrors.passwordConfirmation}<small>{fieldErrors.passwordConfirmation}</small
+						>{/if}</label
+				>
+				<button class="auth-form__submit" type="submit" disabled={isSubmitting}
+					>{isSubmitting ? 'СОЗДАЁМ...' : 'СОЗДАТЬ АККАУНТ'} <i>↗</i></button
+				>
+				<p class="auth-form__privacy">
+					Создавая аккаунт, вы принимаете <a href="/privacy" target="_blank"
+						>политику конфиденциальности</a
+					>.
+				</p>
 			</form>
 		{:else}
-			<form class="auth-form" onsubmit={(event) => { event.preventDefault(); recoverPassword(); }}>
-				<div class="auth-form__intro"><span>RECOVERY / 03</span><h3>Восстановить пароль</h3><p>Отправим защищённую ссылку на вашу почту.</p></div>
-				<label><span>Email</span><input bind:value={email} type="email" autocomplete="email" placeholder="you@example.com" required />{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label>
-				<button class="auth-form__submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'ОТПРАВЛЯЕМ...' : 'ПОЛУЧИТЬ ССЫЛКУ'} <i>↗</i></button>
-				<button class="auth-form__link" type="button" onclick={() => setMode('signin')}>Вернуться ко входу</button>
+			<form
+				class="auth-form"
+				onsubmit={(event) => {
+					event.preventDefault();
+					recoverPassword();
+				}}
+			>
+				<div class="auth-form__intro">
+					<span>RECOVERY / 03</span>
+					<h3>Восстановить пароль</h3>
+					<p>Отправим защищённую ссылку на вашу почту.</p>
+				</div>
+				<label
+					><span>Email</span><input
+						bind:value={email}
+						type="email"
+						autocomplete="email"
+						placeholder="you@example.com"
+						required
+					/>{#if fieldErrors.email}<small>{fieldErrors.email}</small>{/if}</label
+				>
+				<button class="auth-form__submit" type="submit" disabled={isSubmitting}
+					>{isSubmitting ? 'ОТПРАВЛЯЕМ...' : 'ПОЛУЧИТЬ ССЫЛКУ'} <i>↗</i></button
+				>
+				<button class="auth-form__link" type="button" onclick={() => setMode('signin')}
+					>Вернуться ко входу</button
+				>
 			</form>
 		{/if}
 

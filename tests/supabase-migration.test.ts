@@ -2,10 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const migration = readFileSync(
-	resolve('supabase/migrations/202607150001_accounts.sql'),
-	'utf8'
-);
+const migration = readFileSync(resolve('supabase/migrations/202607150001_accounts.sql'), 'utf8');
 
 describe('Supabase account migration', () => {
 	it('creates cascading user-owned tables with RLS', () => {
@@ -17,8 +14,8 @@ describe('Supabase account migration', () => {
 	});
 
 	it('allows users to read only their own records', () => {
-		expect(migration).toContain("create policy \"profiles_select_own\"");
-		expect(migration).toContain("create policy \"messages_select_own\"");
+		expect(migration).toContain('create policy "profiles_select_own"');
+		expect(migration).toContain('create policy "messages_select_own"');
 		expect(migration).toContain('(select auth.uid()) = id');
 		expect(migration).toContain('(select auth.uid()) = user_id');
 		expect(migration).not.toMatch(/create policy[^;]+chat_messages[^;]+for insert/is);

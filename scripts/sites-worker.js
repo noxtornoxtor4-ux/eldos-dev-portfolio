@@ -31,10 +31,7 @@ function json(data, status = 200) {
 
 /** @param {unknown} value */
 function escapeHtml(value) {
-	return String(value)
-		.replaceAll('&', '&amp;')
-		.replaceAll('<', '&lt;')
-		.replaceAll('>', '&gt;');
+	return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
 /** @param {string} message */
@@ -172,7 +169,10 @@ async function handleProfile(request, env) {
 		}
 	);
 	const rows = await response.json();
-	return json({ ok: true, profile: { ...(rows[0] || { id: user.id, name, phone }), email: user.email } });
+	return json({
+		ok: true,
+		profile: { ...(rows[0] || { id: user.id, name, phone }), email: user.email }
+	});
 }
 
 /** @param {Request} request @param {Env} env */
@@ -275,6 +275,15 @@ const worker = {
 		if (url.pathname.startsWith('/api/')) return handleApi(request, env, url.pathname);
 		if (url.pathname === '/') {
 			url.pathname = '/site.html';
+			return env.ASSETS.fetch(new Request(url, request));
+		}
+		const prerenderedPage = {
+			'/privacy': '/privacy.html',
+			'/auth/callback': '/auth/callback.html',
+			'/auth/update-password': '/auth/update-password.html'
+		}[url.pathname];
+		if (prerenderedPage) {
+			url.pathname = prerenderedPage;
 			return env.ASSETS.fetch(new Request(url, request));
 		}
 		return env.ASSETS.fetch(request);

@@ -41,6 +41,7 @@
 ### Task 1: Authentication validation and shared contracts
 
 **Files:**
+
 - Create: src/lib/shared/model/auth.ts
 - Create: src/lib/features/auth/model/validation.ts
 - Create: tests/auth-validation.test.ts
@@ -48,46 +49,55 @@
 - Modify: pnpm-lock.yaml
 
 **Interfaces:**
+
 - Produces: Profile, ChatMessage, RegistrationInput, validateRegistration(input), and validatePassword(password).
 
 - [ ] **Step 1: Install exact dependencies**
 
-~~~powershell
+```powershell
 pnpm add @supabase/supabase-js
 pnpm add -D vitest
-~~~
+```
 
 Add "test": "vitest run" to package scripts.
 
 - [ ] **Step 2: Write failing validation tests**
 
-~~~ts
+```ts
 import { describe, expect, it } from 'vitest';
 import { validateRegistration } from '../src/lib/features/auth/model/validation';
 
 describe('validateRegistration', () => {
-  it('accepts the agreed registration shape', () => {
-    expect(validateRegistration({
-      name: 'Эльдос',
-      email: 'person@example.com',
-      phone: '+7 700 000 00 00',
-      password: 'strongpass',
-      passwordConfirmation: 'strongpass'
-    })).toEqual({});
-  });
+	it('accepts the agreed registration shape', () => {
+		expect(
+			validateRegistration({
+				name: 'Эльдос',
+				email: 'person@example.com',
+				phone: '+7 700 000 00 00',
+				password: 'strongpass',
+				passwordConfirmation: 'strongpass'
+			})
+		).toEqual({});
+	});
 
-  it('rejects invalid and mismatched values', () => {
-    const errors = validateRegistration({
-      name: 'A',
-      email: 'bad',
-      phone: '123',
-      password: 'short',
-      passwordConfirmation: 'different'
-    });
-    expect(Object.keys(errors).sort()).toEqual(['email', 'name', 'password', 'passwordConfirmation', 'phone']);
-  });
+	it('rejects invalid and mismatched values', () => {
+		const errors = validateRegistration({
+			name: 'A',
+			email: 'bad',
+			phone: '123',
+			password: 'short',
+			passwordConfirmation: 'different'
+		});
+		expect(Object.keys(errors).sort()).toEqual([
+			'email',
+			'name',
+			'password',
+			'passwordConfirmation',
+			'phone'
+		]);
+	});
 });
-~~~
+```
 
 - [ ] **Step 3: Run the test and verify failure**
 
@@ -97,42 +107,43 @@ Expected: FAIL because validation.ts does not exist.
 
 - [ ] **Step 4: Implement contracts and validators**
 
-~~~ts
+```ts
 export type RegistrationInput = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  passwordConfirmation: string;
+	name: string;
+	email: string;
+	phone: string;
+	password: string;
+	passwordConfirmation: string;
 };
 export type Profile = { id: string; name: string; email: string; phone: string };
 export type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  created_at: string;
+	id: string;
+	role: 'user' | 'assistant';
+	content: string;
+	created_at: string;
 };
-~~~
+```
 
-~~~ts
+```ts
 import type { RegistrationInput } from '$lib/shared/model/auth';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function validatePassword(password: string) {
-  return password.length >= 8 ? null : 'Пароль должен содержать минимум 8 символов.';
+	return password.length >= 8 ? null : 'Пароль должен содержать минимум 8 символов.';
 }
 export function validateRegistration(input: RegistrationInput) {
-  const errors: Record<string, string> = {};
-  if (input.name.trim().length < 2) errors.name = 'Введите имя.';
-  if (!emailPattern.test(input.email.trim())) errors.email = 'Введите корректный email.';
-  const digits = input.phone.replace(/\D/g, '');
-  if (digits.length < 7 || digits.length > 15) errors.phone = 'Введите корректный телефон.';
-  const passwordError = validatePassword(input.password);
-  if (passwordError) errors.password = passwordError;
-  if (input.password !== input.passwordConfirmation) errors.passwordConfirmation = 'Пароли не совпадают.';
-  return errors;
+	const errors: Record<string, string> = {};
+	if (input.name.trim().length < 2) errors.name = 'Введите имя.';
+	if (!emailPattern.test(input.email.trim())) errors.email = 'Введите корректный email.';
+	const digits = input.phone.replace(/\D/g, '');
+	if (digits.length < 7 || digits.length > 15) errors.phone = 'Введите корректный телефон.';
+	const passwordError = validatePassword(input.password);
+	if (passwordError) errors.password = passwordError;
+	if (input.password !== input.passwordConfirmation)
+		errors.passwordConfirmation = 'Пароли не совпадают.';
+	return errors;
 }
-~~~
+```
 
 - [ ] **Step 5: Run and commit**
 
@@ -147,14 +158,16 @@ Commit: feat: add account validation contracts
 ### Task 2: Supabase schema and ownership policies
 
 **Files:**
+
 - Create: supabase/migrations/202607150001_accounts.sql
 
 **Interfaces:**
+
 - Produces: public.profiles and public.chat_messages tables used by server REST calls.
 
 - [ ] **Step 1: Write the migration**
 
-~~~sql
+```sql
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text not null check (char_length(trim(name)) between 2 and 80),
@@ -187,7 +200,7 @@ create policy "profiles_update_own" on public.profiles for update to authenticat
 create policy "messages_select_own" on public.chat_messages for select to authenticated using ((select auth.uid()) = user_id);
 grant select, update on public.profiles to authenticated;
 grant select on public.chat_messages to authenticated;
-~~~
+```
 
 - [ ] **Step 2: Apply and inspect**
 
@@ -202,6 +215,7 @@ Commit: feat: add account and chat database schema
 ### Task 3: Runtime Supabase client and authentication screens
 
 **Files:**
+
 - Create: src/lib/shared/api/supabase/client.ts
 - Create: src/lib/features/auth/ui/AuthPanel.svelte
 - Create: src/routes/auth/callback/+page.svelte
@@ -209,50 +223,51 @@ Commit: feat: add account and chat database schema
 - Modify: .env.example
 
 **Interfaces:**
+
 - Consumes: RegistrationInput and validateRegistration.
 - Produces: getSupabase(): Promise<SupabaseClient> and AuthPanel authenticated-state callbacks.
 
 - [ ] **Step 1: Implement runtime client creation**
 
-~~~ts
+```ts
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 let client: SupabaseClient | null = null;
 export async function getSupabase() {
-  if (client) return client;
-  const response = await fetch('/api/config', { cache: 'no-store' });
-  if (!response.ok) throw new Error('AUTH_NOT_CONFIGURED');
-  const { supabaseUrl, supabaseAnonKey } = await response.json();
-  client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-  return client;
+	if (client) return client;
+	const response = await fetch('/api/config', { cache: 'no-store' });
+	if (!response.ok) throw new Error('AUTH_NOT_CONFIGURED');
+	const { supabaseUrl, supabaseAnonKey } = await response.json();
+	client = createClient(supabaseUrl, supabaseAnonKey, {
+		auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+	});
+	return client;
 }
-~~~
+```
 
 Keep env example values empty:
 
-~~~dotenv
+```dotenv
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
-~~~
+```
 
 - [ ] **Step 2: Implement AuthPanel**
 
 Create accessible sign-in and registration tabs. Sign in calls signInWithPassword. Registration calls:
 
-~~~ts
+```ts
 await supabase.auth.signUp({
-  email: input.email.trim().toLowerCase(),
-  password: input.password,
-  options: {
-    emailRedirectTo: location.origin + '/auth/callback',
-    data: { name: input.name.trim(), phone: input.phone.trim() }
-  }
+	email: input.email.trim().toLowerCase(),
+	password: input.password,
+	options: {
+		emailRedirectTo: location.origin + '/auth/callback',
+		data: { name: input.name.trim(), phone: input.phone.trim() }
+	}
 });
-~~~
+```
 
 Recovery calls resetPasswordForEmail(email, { redirectTo: location.origin + '/auth/update-password' }). Show Russian states for invalid credentials, duplicate email, weak password, confirmation sent, expired link, and unavailable service.
 
@@ -273,10 +288,12 @@ Commit: feat: add Supabase account screens
 ### Task 4: Authenticated worker APIs and persistence
 
 **Files:**
+
 - Modify: scripts/sites-worker.js
 - Create: tests/sites-worker.test.ts
 
 **Interfaces:**
+
 - Produces: GET /api/config, GET /api/history, PATCH /api/profile, DELETE /api/account, and authenticated POST /api/chat.
 
 - [ ] **Step 1: Write failing worker tests**
@@ -289,17 +306,17 @@ Expected: FAIL because token validation and the new routes are absent.
 
 - [ ] **Step 2: Add server authentication**
 
-~~~js
+```js
 async function requireUser(request, env) {
-  const authorization = request.headers.get('authorization') || '';
-  if (!authorization.startsWith('Bearer ')) throw new HttpError(401, 'Authentication required');
-  const response = await fetch(env.SUPABASE_URL + '/auth/v1/user', {
-    headers: { apikey: env.SUPABASE_ANON_KEY, authorization }
-  });
-  if (!response.ok) throw new HttpError(401, 'Invalid session');
-  return { user: await response.json(), authorization };
+	const authorization = request.headers.get('authorization') || '';
+	if (!authorization.startsWith('Bearer ')) throw new HttpError(401, 'Authentication required');
+	const response = await fetch(env.SUPABASE_URL + '/auth/v1/user', {
+		headers: { apikey: env.SUPABASE_ANON_KEY, authorization }
+	});
+	if (!response.ok) throw new HttpError(401, 'Invalid session');
+	return { user: await response.json(), authorization };
 }
-~~~
+```
 
 Add a server-only REST helper using SUPABASE_SERVICE_ROLE_KEY. It always filters user-owned reads by the verified id and returns generic failures.
 
@@ -324,37 +341,39 @@ Commit: feat: secure assistant APIs with Supabase accounts
 ### Task 5: Private assistant history and profile
 
 **Files:**
+
 - Create: src/lib/features/profile/ui/ProfilePanel.svelte
 - Modify: src/lib/features/ai-assistant/ui/AiAssistant.svelte
 - Modify: src/app.css
 
 **Interfaces:**
+
 - Consumes: getSupabase, AuthPanel, Profile, ChatMessage, and authenticated worker APIs.
 
 - [ ] **Step 1: Replace temporary identity state**
 
 Remove VisitorIdentity, sessionStorage, identity submission, and the consent checkbox. On mount, initialize Supabase, subscribe to onAuthStateChange, and load history with:
 
-~~~ts
+```ts
 const response = await fetch('/api/history', {
-  headers: { authorization: 'Bearer ' + session.access_token }
+	headers: { authorization: 'Bearer ' + session.access_token }
 });
-~~~
+```
 
 Render AuthPanel without a session. Render the profile header, saved history, quick prompts, and composer with a confirmed session.
 
 - [ ] **Step 2: Authenticate chat requests**
 
-~~~ts
+```ts
 await fetch('/api/chat', {
-  method: 'POST',
-  headers: {
-    'content-type': 'application/json',
-    authorization: 'Bearer ' + session.access_token
-  },
-  body: JSON.stringify({ message: text, website })
+	method: 'POST',
+	headers: {
+		'content-type': 'application/json',
+		authorization: 'Bearer ' + session.access_token
+	},
+	body: JSON.stringify({ message: text, website })
 });
-~~~
+```
 
 Handle 401 by refreshing once through Supabase, then return to sign-in if refresh fails.
 
@@ -377,11 +396,13 @@ Commit: feat: add private assistant account experience
 ### Task 6: Privacy, static routing, production configuration, and deployment
 
 **Files:**
+
 - Create: src/routes/privacy/+page.svelte
 - Modify: scripts/sites-worker.js
 - Modify: src/app.css
 
 **Interfaces:**
+
 - Produces: public /privacy, /auth/callback, and /auth/update-password browser routes.
 
 - [ ] **Step 1: Add privacy page**
@@ -394,12 +415,12 @@ After build, inspect dist/client and map extensionless browser paths to the exac
 
 - [ ] **Step 3: Run full verification**
 
-~~~powershell
+```powershell
 pnpm run format
 pnpm run check
 pnpm test
 pnpm run build
-~~~
+```
 
 Expected: Svelte reports 0 errors and 0 warnings; tests pass; build exits 0; dist/server/index.js and required route HTML files exist.
 

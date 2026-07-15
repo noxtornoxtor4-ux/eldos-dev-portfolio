@@ -6,7 +6,9 @@ afterEach(() => {
 
 describe('account API client', () => {
 	it('loads private history with the access token', async () => {
-		const messages = [{ id: 'm1', role: 'user', content: 'Привет', created_at: '2026-07-15T12:00:00Z' }];
+		const messages = [
+			{ id: 'm1', role: 'user', content: 'Привет', created_at: '2026-07-15T12:00:00Z' }
+		];
 		const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true, messages }));
 		vi.stubGlobal('fetch', fetchMock);
 		const { loadHistory } = await import('../src/lib/shared/api/account/client');
@@ -30,7 +32,10 @@ describe('account API client', () => {
 	});
 
 	it('surfaces an authentication status without leaking a response body', async () => {
-		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ error: 'internal detail' }, { status: 401 })));
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(Response.json({ error: 'internal detail' }, { status: 401 }))
+		);
 		const { AccountApiError, loadProfile } = await import('../src/lib/shared/api/account/client');
 
 		await expect(loadProfile('expired-token')).rejects.toEqual(new AccountApiError(401));

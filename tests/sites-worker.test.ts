@@ -41,6 +41,18 @@ afterEach(() => {
 });
 
 describe('Sites worker account APIs', () => {
+	it.each([
+		['/privacy', '/privacy.html'],
+		['/auth/callback', '/auth/callback.html'],
+		['/auth/update-password', '/auth/update-password.html']
+	])('maps the browser route %s to its prerendered page', async (path, assetPath) => {
+		const assetFetch = vi.fn(async (assetRequest: Request) => new Response(assetRequest.url));
+		const response = await worker.fetch(request(path), { ...env, ASSETS: { fetch: assetFetch } });
+
+		expect(response.status).toBe(200);
+		expect(new URL(assetFetch.mock.calls[0][0].url).pathname).toBe(assetPath);
+	});
+
 	it('returns public Supabase configuration without server secrets', async () => {
 		const response = await worker.fetch(request('/api/config'), env);
 		const data = await response.json();
@@ -72,7 +84,9 @@ describe('Sites worker account APIs', () => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
 			if (url.includes('/rest/v1/profiles')) {
-				return Response.json([{ id: user.id, name: 'Verified Visitor', phone: '+7 700 000 00 00' }]);
+				return Response.json([
+					{ id: user.id, name: 'Verified Visitor', phone: '+7 700 000 00 00' }
+				]);
 			}
 			if (url.endsWith('/rest/v1/chat_messages')) return new Response(null, { status: 201 });
 			if (url.includes('api.telegram.org')) return Response.json({ ok: true, result: {} });
@@ -95,14 +109,18 @@ describe('Sites worker account APIs', () => {
 		);
 
 		expect(response.status).toBe(200);
-		const insertCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/rest/v1/chat_messages'));
+		const insertCall = fetchMock.mock.calls.find(([url]) =>
+			String(url).endsWith('/rest/v1/chat_messages')
+		);
 		expect(insertCall).toBeDefined();
 		const inserted = JSON.parse(String(insertCall?.[1]?.body));
 		expect(inserted).toHaveLength(2);
 		expect(inserted.map((entry: { user_id: string }) => entry.user_id)).toEqual([user.id, user.id]);
 		expect(inserted.map((entry: { role: string }) => entry.role)).toEqual(['user', 'assistant']);
 
-		const telegramCall = fetchMock.mock.calls.find(([url]) => String(url).includes('api.telegram.org'));
+		const telegramCall = fetchMock.mock.calls.find(([url]) =>
+			String(url).includes('api.telegram.org')
+		);
 		const telegramBody = JSON.parse(String(telegramCall?.[1]?.body));
 		expect(telegramBody.text).toContain('Verified Visitor');
 		expect(telegramBody.text).toContain('person@example.com');
@@ -113,7 +131,9 @@ describe('Sites worker account APIs', () => {
 	});
 
 	it('loads history only for the verified user', async () => {
-		const rows = [{ id: 'message-1', role: 'user', content: 'Привет', created_at: '2026-07-15T12:00:00Z' }];
+		const rows = [
+			{ id: 'message-1', role: 'user', content: 'Привет', created_at: '2026-07-15T12:00:00Z' }
+		];
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
@@ -127,7 +147,9 @@ describe('Sites worker account APIs', () => {
 
 		expect(response.status).toBe(200);
 		expect(data.messages).toEqual(rows);
-		const historyUrl = fetchMock.mock.calls.map(([url]) => String(url)).find((url) => url.includes('/rest/v1/chat_messages'));
+		const historyUrl = fetchMock.mock.calls
+			.map(([url]) => String(url))
+			.find((url) => url.includes('/rest/v1/chat_messages'));
 		expect(historyUrl).toContain(`user_id=eq.${user.id}`);
 		expect(historyUrl).toContain('order=created_at.asc');
 	});
@@ -137,7 +159,9 @@ describe('Sites worker account APIs', () => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
 			if (url.includes('/rest/v1/profiles')) {
-				return Response.json([{ id: user.id, name: 'Verified Visitor', phone: '+7 700 000 00 00' }]);
+				return Response.json([
+					{ id: user.id, name: 'Verified Visitor', phone: '+7 700 000 00 00' }
+				]);
 			}
 			return new Response(null, { status: 404 });
 		});
@@ -164,7 +188,10 @@ describe('Sites worker account APIs', () => {
 		});
 		vi.stubGlobal('fetch', fetchMock);
 
-		const response = await worker.fetch(request('/api/account', { method: 'DELETE', headers: authHeaders() }), env);
+		const response = await worker.fetch(
+			request('/api/account', { method: 'DELETE', headers: authHeaders() }),
+			env
+		);
 
 		expect(response.status).toBe(200);
 		expect(fetchMock.mock.calls.map(([url]) => String(url))).toContain(

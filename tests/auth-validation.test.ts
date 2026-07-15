@@ -43,7 +43,9 @@ describe('validateRegistration', () => {
 
 	it('maps provider errors to safe Russian copy', () => {
 		expect(getAuthErrorMessage('Invalid login credentials')).toBe('Неверный email или пароль.');
-		expect(getAuthErrorMessage('User already registered')).toBe('Аккаунт с таким email уже существует.');
+		expect(getAuthErrorMessage('User already registered')).toBe(
+			'Аккаунт с таким email уже существует.'
+		);
 		expect(getAuthErrorMessage('internal database details')).toBe(
 			'Не удалось выполнить запрос. Попробуйте ещё раз.'
 		);

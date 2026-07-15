@@ -105,7 +105,12 @@
 		if (!text || isSending || !session) return;
 		error = '';
 		isSending = true;
-		messages.push({ id: `local-user-${Date.now()}`, role: 'user', content: text, created_at: new Date().toISOString() });
+		messages.push({
+			id: `local-user-${Date.now()}`,
+			role: 'user',
+			content: text,
+			created_at: new Date().toISOString()
+		});
 		input = '';
 
 		try {
@@ -114,18 +119,25 @@
 			try {
 				reply = await sendChatMessage(activeSession.access_token, text, website);
 			} catch (reason) {
-				if (!(reason instanceof AccountApiError) || reason.status !== 401 || !supabase) throw reason;
+				if (!(reason instanceof AccountApiError) || reason.status !== 401 || !supabase)
+					throw reason;
 				const refreshed = await supabase.auth.refreshSession();
 				if (!refreshed.data.session) throw reason;
 				activeSession = refreshed.data.session;
 				session = activeSession;
 				reply = await sendChatMessage(activeSession.access_token, text, website);
 			}
-			messages.push({ id: `local-assistant-${Date.now()}`, role: 'assistant', content: reply, created_at: new Date().toISOString() });
+			messages.push({
+				id: `local-assistant-${Date.now()}`,
+				role: 'assistant',
+				content: reply,
+				created_at: new Date().toISOString()
+			});
 		} catch (reason) {
-			error = reason instanceof AccountApiError && reason.status === 401
-				? 'Сессия завершена. Войдите снова.'
-				: 'Связь временно недоступна. Напишите на hello@eldos.dev';
+			error =
+				reason instanceof AccountApiError && reason.status === 401
+					? 'Сессия завершена. Войдите снова.'
+					: 'Связь временно недоступна. Напишите на hello@eldos.dev';
 		} finally {
 			isSending = false;
 		}
@@ -137,12 +149,20 @@
 		<div class="ai-panel" role="dialog" aria-label="AI-консультант Эльдоса">
 			<header class="ai-panel__header">
 				<div class="ai-avatar" aria-hidden="true">E/D</div>
-				<div><strong>E/D ASSISTANT</strong><span><i></i> {session ? 'ACCOUNT / ONLINE' : 'SIGN IN REQUIRED'}</span></div>
-				<button type="button" aria-label="Закрыть консультанта" onclick={() => (isOpen = false)}>×</button>
+				<div>
+					<strong>E/D ASSISTANT</strong><span
+						><i></i> {session ? 'ACCOUNT / ONLINE' : 'SIGN IN REQUIRED'}</span
+					>
+				</div>
+				<button type="button" aria-label="Закрыть консультанта" onclick={() => (isOpen = false)}
+					>×</button
+				>
 			</header>
 
 			{#if isLoadingSession}
-				<div class="ai-account-loading"><span>SECURE SESSION</span><strong>Проверяем аккаунт...</strong><i></i></div>
+				<div class="ai-account-loading">
+					<span>SECURE SESSION</span><strong>Проверяем аккаунт...</strong><i></i>
+				</div>
 			{:else if !session}
 				<AuthPanel onauthenticated={useSession} />
 			{:else if isProfileOpen && profile}
@@ -166,31 +186,85 @@
 					{#if isLoadingHistory}
 						<div class="ai-history-state">Загружаем историю...</div>
 					{:else if messages.length === 0}
-						<div class="ai-message"><span>AI</span><p>Привет, {profile?.name || 'друг'}! Расскажите о задаче — диалог сохранится в вашем аккаунте и будет передан Эльдосу.</p></div>
+						<div class="ai-message">
+							<span>AI</span>
+							<p>
+								Привет, {profile?.name || 'друг'}! Расскажите о задаче — диалог сохранится в вашем
+								аккаунте и будет передан Эльдосу.
+							</p>
+						</div>
 					{:else}
 						{#each messages as message (message.id)}
-							<div class:ai-message--user={message.role === 'user'} class="ai-message"><span>{message.role === 'assistant' ? 'AI' : 'YOU'}</span><p>{message.content}</p></div>
+							<div class:ai-message--user={message.role === 'user'} class="ai-message">
+								<span>{message.role === 'assistant' ? 'AI' : 'YOU'}</span>
+								<p>{message.content}</p>
+							</div>
 						{/each}
 					{/if}
-					{#if isSending}<div class="ai-typing" aria-label="Ассистент печатает"><i></i><i></i><i></i></div>{/if}
+					{#if isSending}<div class="ai-typing" aria-label="Ассистент печатает">
+							<i></i><i></i><i></i>
+						</div>{/if}
 				</div>
 
-				<div class="ai-quick-prompts" aria-label="Быстрые вопросы">{#each quickPrompts as prompt}<button type="button" onclick={() => choosePrompt(prompt)}>{prompt}</button>{/each}</div>
-				<form class="ai-form" onsubmit={(event) => { event.preventDefault(); sendMessage(); }}>
-					<label class="ai-form__honeypot" aria-hidden="true"><span>Website</span><input bind:value={website} tabindex="-1" autocomplete="off" /></label>
+				<div class="ai-quick-prompts" aria-label="Быстрые вопросы">
+					{#each quickPrompts as prompt}<button type="button" onclick={() => choosePrompt(prompt)}
+							>{prompt}</button
+						>{/each}
+				</div>
+				<form
+					class="ai-form"
+					onsubmit={(event) => {
+						event.preventDefault();
+						sendMessage();
+					}}
+				>
+					<label class="ai-form__honeypot" aria-hidden="true"
+						><span>Website</span><input
+							bind:value={website}
+							tabindex="-1"
+							autocomplete="off"
+						/></label
+					>
 					<div class="ai-form__composer">
-						<textarea bind:value={input} maxlength="1200" rows="2" placeholder="Напишите сообщение..." aria-label="Сообщение" onkeydown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }}></textarea>
-						<button type="submit" disabled={!input.trim() || isSending} aria-label="Отправить сообщение">↗</button>
+						<textarea
+							bind:value={input}
+							maxlength="1200"
+							rows="2"
+							placeholder="Напишите сообщение..."
+							aria-label="Сообщение"
+							onkeydown={(event) => {
+								if (event.key === 'Enter' && !event.shiftKey) {
+									event.preventDefault();
+									sendMessage();
+								}
+							}}></textarea>
+						<button
+							type="submit"
+							disabled={!input.trim() || isSending}
+							aria-label="Отправить сообщение">↗</button
+						>
 					</div>
 					{#if error}<p class="ai-form__error" role="alert">{error}</p>{/if}
-					<small class="ai-form__privacy">История сохранена в вашем аккаунте. <a href="/privacy" target="_blank">Конфиденциальность</a></small>
+					<small class="ai-form__privacy"
+						>История сохранена в вашем аккаунте. <a href="/privacy" target="_blank"
+							>Конфиденциальность</a
+						></small
+					>
 				</form>
 			{/if}
 			{#if error && !session}<p class="auth-form__error" role="alert">{error}</p>{/if}
 		</div>
 	{/if}
 
-	<button type="button" class="ai-launcher" aria-label={isOpen ? 'Закрыть AI-консультанта' : 'Открыть AI-консультанта'} aria-expanded={isOpen} onclick={() => (isOpen = !isOpen)}>
-		<span class="ai-launcher__pulse"></span><span class="ai-launcher__icon">{isOpen ? '×' : 'AI'}</span><span class="ai-launcher__label">ASK E/D</span>
+	<button
+		type="button"
+		class="ai-launcher"
+		aria-label={isOpen ? 'Закрыть AI-консультанта' : 'Открыть AI-консультанта'}
+		aria-expanded={isOpen}
+		onclick={() => (isOpen = !isOpen)}
+	>
+		<span class="ai-launcher__pulse"></span><span class="ai-launcher__icon"
+			>{isOpen ? '×' : 'AI'}</span
+		><span class="ai-launcher__label">ASK E/D</span>
 	</button>
 </div>

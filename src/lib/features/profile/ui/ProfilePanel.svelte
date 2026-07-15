@@ -74,20 +74,60 @@
 </script>
 
 <section class="profile-panel" aria-label="Настройки аккаунта">
-	<header><div><span>ACCOUNT / PROFILE</span><h3>Ваш аккаунт</h3></div><button type="button" aria-label="Закрыть настройки" onclick={onclose}>×</button></header>
-	<div class="profile-panel__email"><span>EMAIL / VERIFIED</span><strong>{profile.email}</strong></div>
-	<form onsubmit={(event) => { event.preventDefault(); save(); }}>
-		<label><span>Имя</span><input bind:value={name} autocomplete="name" maxlength="80" required /></label>
-		<label><span>Телефон</span><input bind:value={phone} type="tel" autocomplete="tel" inputmode="tel" maxlength="32" required /></label>
-		<button class="profile-panel__save" type="submit" disabled={isSaving}>{isSaving ? 'СОХРАНЯЕМ...' : 'СОХРАНИТЬ ИЗМЕНЕНИЯ'}</button>
+	<header>
+		<div>
+			<span>ACCOUNT / PROFILE</span>
+			<h3>Ваш аккаунт</h3>
+		</div>
+		<button type="button" aria-label="Закрыть настройки" onclick={onclose}>×</button>
+	</header>
+	<div class="profile-panel__email">
+		<span>EMAIL / VERIFIED</span><strong>{profile.email}</strong>
+	</div>
+	<form
+		onsubmit={(event) => {
+			event.preventDefault();
+			save();
+		}}
+	>
+		<label
+			><span>Имя</span><input
+				bind:value={name}
+				autocomplete="name"
+				maxlength="80"
+				required
+			/></label
+		>
+		<label
+			><span>Телефон</span><input
+				bind:value={phone}
+				type="tel"
+				autocomplete="tel"
+				inputmode="tel"
+				maxlength="32"
+				required
+			/></label
+		>
+		<button class="profile-panel__save" type="submit" disabled={isSaving}
+			>{isSaving ? 'СОХРАНЯЕМ...' : 'СОХРАНИТЬ ИЗМЕНЕНИЯ'}</button
+		>
 		{#if saved}<p class="profile-panel__success">Профиль обновлён.</p>{/if}
 	</form>
-	<button class="profile-panel__signout" type="button" onclick={onsignout}>Выйти на всех устройствах</button>
+	<button class="profile-panel__signout" type="button" onclick={onsignout}
+		>Выйти на всех устройствах</button
+	>
 	<details class="profile-panel__danger">
 		<summary>Удалить аккаунт</summary>
 		<p>Профиль и вся история переписки будут удалены без возможности восстановления.</p>
-		<label><span>Введите УДАЛИТЬ</span><input bind:value={deleteConfirmation} autocomplete="off" /></label>
-		<button type="button" onclick={removeAccount} disabled={isDeleting}>{isDeleting ? 'УДАЛЯЕМ...' : 'УДАЛИТЬ АККАУНТ'}</button>
+		<label
+			><span>Введите УДАЛИТЬ</span><input
+				bind:value={deleteConfirmation}
+				autocomplete="off"
+			/></label
+		>
+		<button type="button" onclick={removeAccount} disabled={isDeleting}
+			>{isDeleting ? 'УДАЛЯЕМ...' : 'УДАЛИТЬ АККАУНТ'}</button
+		>
 	</details>
 	{#if error}<p class="profile-panel__error" role="alert">{error}</p>{/if}
 </section>
