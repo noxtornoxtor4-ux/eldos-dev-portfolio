@@ -89,12 +89,16 @@ async function serviceRequest(env, path, init = {}) {
 	requireSupabaseConfig(env, true);
 	const supabaseUrl = /** @type {string} */ (env.SUPABASE_URL);
 	const serviceRoleKey = /** @type {string} */ (env.SUPABASE_SERVICE_ROLE_KEY);
+	/** @type {Record<string, string>} */
+	const serviceHeaders = {
+		apikey: serviceRoleKey,
+		authorization: `Bearer ${serviceRoleKey}`,
+		'content-type': 'application/json'
+	};
 	const response = await fetch(`${supabaseUrl}${path}`, {
 		...init,
 		headers: {
-			apikey: serviceRoleKey,
-			authorization: `Bearer ${serviceRoleKey}`,
-			'content-type': 'application/json',
+			...serviceHeaders,
 			...(init.headers || {})
 		}
 	});
