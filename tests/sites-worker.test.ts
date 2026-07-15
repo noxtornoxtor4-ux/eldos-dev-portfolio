@@ -132,6 +132,29 @@ describe('Sites worker account APIs', () => {
 		expect(historyUrl).toContain('order=created_at.asc');
 	});
 
+	it('returns a profile scoped to the verified account', async () => {
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.endsWith('/auth/v1/user')) return Response.json(user);
+			if (url.includes('/rest/v1/profiles')) {
+				return Response.json([{ id: user.id, name: 'Verified Visitor', phone: '+7 700 000 00 00' }]);
+			}
+			return new Response(null, { status: 404 });
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const response = await worker.fetch(request('/api/profile', { headers: authHeaders() }), env);
+		const data = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(data.profile).toEqual({
+			id: user.id,
+			name: 'Verified Visitor',
+			phone: '+7 700 000 00 00',
+			email: user.email
+		});
+	});
+
 	it('deletes only the authenticated account', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);

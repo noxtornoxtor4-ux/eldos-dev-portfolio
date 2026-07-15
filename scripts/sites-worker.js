@@ -3,17 +3,33 @@ const jsonHeaders = {
 	'cache-control': 'no-store'
 };
 
+/**
+ * @typedef {{
+ *   SUPABASE_URL?: string;
+ *   SUPABASE_ANON_KEY?: string;
+ *   SUPABASE_SERVICE_ROLE_KEY?: string;
+ *   TELEGRAM_BOT_TOKEN?: string;
+ *   TELEGRAM_CHAT_ID?: string;
+ *   ASSETS: { fetch(request: Request): Promise<Response> };
+ * }} Env
+ * @typedef {{ id: string; email: string; email_confirmed_at?: string | null }} AuthUser
+ * @typedef {{ id: string; name: string; phone: string }} ProfileRow
+ */
+
 class HttpError extends Error {
+	/** @param {number} status @param {string} message */
 	constructor(status, message) {
 		super(message);
 		this.status = status;
 	}
 }
 
+/** @param {unknown} data @param {number} status */
 function json(data, status = 200) {
 	return new Response(JSON.stringify(data), { status, headers: jsonHeaders });
 }
 
+/** @param {unknown} value */
 function escapeHtml(value) {
 	return String(value)
 		.replaceAll('&', '&amp;')
@@ -21,6 +37,7 @@ function escapeHtml(value) {
 		.replaceAll('>', '&gt;');
 }
 
+/** @param {string} message */
 function assistantReply(message) {
 	const text = message.toLowerCase();
 
@@ -37,6 +54,7 @@ function assistantReply(message) {
 	return 'Принял сообщение и передал его Эльдосу в Telegram. Обычно он отвечает в течение 24 часов.';
 }
 
+/** @param {Env} env @param {boolean} includeServiceRole */
 function requireSupabaseConfig(env, includeServiceRole = false) {
 	if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
 		throw new HttpError(503, 'Account service is not configured');
@@ -46,18 +64,22 @@ function requireSupabaseConfig(env, includeServiceRole = false) {
 	}
 }
 
+/** @param {Request} request @param {Env} env */
 async function requireUser(request, env) {
 	requireSupabaseConfig(env);
+	const supabaseUrl = /** @type {string} */ (env.SUPABASE_URL);
+	const anonKey = /** @type {string} */ (env.SUPABASE_ANON_KEY);
 	const authorization = request.headers.get('authorization') || '';
 	if (!authorization.startsWith('Bearer ')) {
 		throw new HttpError(401, 'Authentication required');
 	}
 
-	const response = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-		headers: { apikey: env.SUPABASE_ANON_KEY, authorization }
+	const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+		headers: { apikey: anonKey, authorization }
 	});
 	if (!response.ok) throw new HttpError(401, 'Invalid session');
 
+	/** @type {AuthUser} */
 	const user = await response.json();
 	if (!user?.id || !user?.email) throw new HttpError(401, 'Invalid session');
 	if (!user.email_confirmed_at) throw new HttpError(403, 'Email confirmation required');
@@ -65,13 +87,16 @@ async function requireUser(request, env) {
 	return user;
 }
 
+/** @param {Env} env @param {string} path @param {RequestInit} init */
 async function serviceRequest(env, path, init = {}) {
 	requireSupabaseConfig(env, true);
-	const response = await fetch(`${env.SUPABASE_URL}${path}`, {
+	const supabaseUrl = /** @type {string} */ (env.SUPABASE_URL);
+	const serviceRoleKey = /** @type {string} */ (env.SUPABASE_SERVICE_ROLE_KEY);
+	const response = await fetch(`${supabaseUrl}${path}`, {
 		...init,
 		headers: {
-			apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-			authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+			apikey: serviceRoleKey,
+			authorization: `Bearer ${serviceRoleKey}`,
 			'content-type': 'application/json',
 			...(init.headers || {})
 		}
@@ -80,16 +105,19 @@ async function serviceRequest(env, path, init = {}) {
 	return response;
 }
 
+/** @param {Env} env @param {string} userId */
 async function loadProfile(env, userId) {
 	const response = await serviceRequest(
 		env,
 		`/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=id,name,phone&limit=1`
 	);
+	/** @type {ProfileRow[]} */
 	const rows = await response.json();
 	if (!Array.isArray(rows) || !rows[0]) throw new HttpError(409, 'Profile is not ready');
 	return rows[0];
 }
 
+/** @param {Request} request @param {Env} env */
 function handleConfig(request, env) {
 	if (request.method !== 'GET') throw new HttpError(405, 'Method not allowed');
 	requireSupabaseConfig(env);
@@ -100,6 +128,7 @@ function handleConfig(request, env) {
 	});
 }
 
+/** @param {Request} request @param {Env} env */
 async function handleHistory(request, env) {
 	if (request.method !== 'GET') throw new HttpError(405, 'Method not allowed');
 	const user = await requireUser(request, env);
@@ -110,9 +139,14 @@ async function handleHistory(request, env) {
 	return json({ ok: true, messages: await response.json() });
 }
 
+/** @param {Request} request @param {Env} env */
 async function handleProfile(request, env) {
-	if (request.method !== 'PATCH') throw new HttpError(405, 'Method not allowed');
 	const user = await requireUser(request, env);
+	if (request.method === 'GET') {
+		const profile = await loadProfile(env, user.id);
+		return json({ ok: true, profile: { ...profile, email: user.email } });
+	}
+	if (request.method !== 'PATCH') throw new HttpError(405, 'Method not allowed');
 	let payload;
 	try {
 		payload = await request.json();
@@ -141,6 +175,7 @@ async function handleProfile(request, env) {
 	return json({ ok: true, profile: { ...(rows[0] || { id: user.id, name, phone }), email: user.email } });
 }
 
+/** @param {Request} request @param {Env} env */
 async function handleAccount(request, env) {
 	if (request.method !== 'DELETE') throw new HttpError(405, 'Method not allowed');
 	const user = await requireUser(request, env);
@@ -150,6 +185,7 @@ async function handleAccount(request, env) {
 	return json({ ok: true });
 }
 
+/** @param {Request} request @param {Env} env */
 async function handleChat(request, env) {
 	if (request.method === 'OPTIONS') return new Response(null, { status: 204 });
 	if (request.method !== 'POST') throw new HttpError(405, 'Method not allowed');
@@ -217,6 +253,7 @@ async function handleChat(request, env) {
 	return json({ ok: true, reply });
 }
 
+/** @param {Request} request @param {Env} env @param {string} pathname */
 async function handleApi(request, env, pathname) {
 	try {
 		if (pathname === '/api/config') return handleConfig(request, env);
@@ -232,6 +269,7 @@ async function handleApi(request, env, pathname) {
 }
 
 const worker = {
+	/** @param {Request} request @param {Env} env */
 	async fetch(request, env) {
 		const url = new URL(request.url);
 		if (url.pathname.startsWith('/api/')) return handleApi(request, env, url.pathname);

@@ -1,94 +1,99 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Session, SupabaseClient } from '@supabase/supabase-js';
+	import AuthPanel from '$lib/features/auth/ui/AuthPanel.svelte';
+	import ProfilePanel from '$lib/features/profile/ui/ProfilePanel.svelte';
+	import {
+		AccountApiError,
+		loadHistory,
+		loadProfile,
+		sendChatMessage
+	} from '$lib/shared/api/account/client';
+	import { getSupabase } from '$lib/shared/api/supabase/client';
+	import type { ChatMessage, Profile } from '$lib/shared/model/auth';
 
-	type ChatMessage = {
-		id: number;
-		role: 'assistant' | 'user';
-		text: string;
-	};
-
-	type VisitorIdentity = {
-		name: string;
-		phone: string;
-	};
-
-	const storageKey = 'eldos-assistant-identity';
 	const quickPrompts = ['Хочу обсудить проект', 'Какие сроки?', 'Сколько стоит разработка?'];
-
 	let isOpen = $state(false);
-	let isIdentified = $state(false);
+	let isLoadingSession = $state(true);
+	let isLoadingHistory = $state(false);
 	let isSending = $state(false);
+	let isProfileOpen = $state(false);
 	let input = $state('');
-	let name = $state('');
-	let phone = $state('');
-	let consent = $state(false);
 	let website = $state('');
 	let error = $state('');
-	let identityError = $state('');
-	let messageId = 1;
+	let session = $state<Session | null>(null);
+	let profile = $state<Profile | null>(null);
 	let messages = $state<ChatMessage[]>([]);
+	let supabase: SupabaseClient | null = null;
 
 	onMount(() => {
-		const savedIdentity = sessionStorage.getItem(storageKey);
-		if (!savedIdentity) return;
+		let active = true;
+		let unsubscribe = () => {};
+		if (new URL(location.href).searchParams.get('assistant') === 'open') isOpen = true;
 
-		try {
-			const identity = JSON.parse(savedIdentity) as VisitorIdentity;
-			if (identity.name && identity.phone) {
-				name = identity.name;
-				phone = identity.phone;
-				consent = true;
-				startConversation();
+		async function initialize() {
+			try {
+				supabase = await getSupabase();
+				const result = await supabase.auth.getSession();
+				if (active && result.data.session) await useSession(result.data.session);
+				const listener = supabase.auth.onAuthStateChange((_event, nextSession) => {
+					if (!active) return;
+					if (!nextSession) resetAccount();
+					else if (nextSession.access_token !== session?.access_token) void useSession(nextSession);
+				});
+				unsubscribe = () => listener.data.subscription.unsubscribe();
+			} catch {
+				error = 'Сервис аккаунтов временно недоступен.';
+			} finally {
+				isLoadingSession = false;
 			}
-		} catch {
-			sessionStorage.removeItem(storageKey);
 		}
+
+		void initialize();
+		return () => {
+			active = false;
+			unsubscribe();
+		};
 	});
 
-	function startConversation() {
-		isIdentified = true;
-		messages = [
-			{
-				id: 0,
-				role: 'assistant',
-				text: `Привет, ${name}! Я E/D Assistant. Расскажите о задаче — я отвечу и передам весь диалог Эльдосу в Telegram.`
-			}
-		];
-	}
-
-	function submitIdentity() {
-		identityError = '';
-		const cleanName = name.trim();
-		const phoneDigits = phone.replace(/\D/g, '');
-
-		if (cleanName.length < 2) {
-			identityError = 'Введите имя — минимум 2 символа.';
-			return;
-		}
-		if (phoneDigits.length < 7 || phoneDigits.length > 15) {
-			identityError = 'Введите корректный номер телефона.';
-			return;
-		}
-		if (!consent) {
-			identityError = 'Нужно подтвердить передачу контактных данных.';
-			return;
-		}
-
-		name = cleanName;
-		phone = phone.trim();
-		sessionStorage.setItem(storageKey, JSON.stringify({ name, phone } satisfies VisitorIdentity));
-		startConversation();
-	}
-
-	function resetIdentity() {
-		sessionStorage.removeItem(storageKey);
-		isIdentified = false;
-		name = '';
-		phone = '';
-		consent = false;
-		input = '';
-		messages = [];
+	async function useSession(nextSession: Session) {
+		session = nextSession;
+		isLoadingHistory = true;
 		error = '';
+		try {
+			const [nextProfile, history] = await Promise.all([
+				loadProfile(nextSession.access_token),
+				loadHistory(nextSession.access_token)
+			]);
+			profile = nextProfile;
+			messages = history;
+		} catch (reason) {
+			if (reason instanceof AccountApiError && reason.status === 401) {
+				await signOut(false);
+			} else {
+				error = 'Не удалось загрузить аккаунт и историю.';
+			}
+		} finally {
+			isLoadingHistory = false;
+		}
+	}
+
+	function resetAccount() {
+		session = null;
+		profile = null;
+		messages = [];
+		isProfileOpen = false;
+		input = '';
+	}
+
+	async function signOut(global = true) {
+		if (supabase) await supabase.auth.signOut({ scope: global ? 'global' : 'local' });
+		resetAccount();
+	}
+
+	async function accountDeleted() {
+		if (supabase) await supabase.auth.signOut({ scope: 'local' });
+		resetAccount();
 	}
 
 	function choosePrompt(prompt: string) {
@@ -97,30 +102,30 @@
 
 	async function sendMessage() {
 		const text = input.trim();
-		if (!text || isSending || !isIdentified) return;
-
+		if (!text || isSending || !session) return;
 		error = '';
 		isSending = true;
-		messages.push({ id: messageId++, role: 'user', text });
+		messages.push({ id: `local-user-${Date.now()}`, role: 'user', content: text, created_at: new Date().toISOString() });
 		input = '';
 
 		try {
-			const response = await fetch('/api/chat', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ message: text, name, phone, website })
-			});
-			const data = (await response.json()) as { ok?: boolean; reply?: string; error?: string };
-
-			if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось отправить сообщение');
-
-			messages.push({
-				id: messageId++,
-				role: 'assistant',
-				text: data.reply || 'Сообщение и ответ переданы Эльдосу.'
-			});
-		} catch {
-			error = 'Связь временно недоступна. Напишите на hello@eldos.dev';
+			let activeSession = session;
+			let reply: string;
+			try {
+				reply = await sendChatMessage(activeSession.access_token, text, website);
+			} catch (reason) {
+				if (!(reason instanceof AccountApiError) || reason.status !== 401 || !supabase) throw reason;
+				const refreshed = await supabase.auth.refreshSession();
+				if (!refreshed.data.session) throw reason;
+				activeSession = refreshed.data.session;
+				session = activeSession;
+				reply = await sendChatMessage(activeSession.access_token, text, website);
+			}
+			messages.push({ id: `local-assistant-${Date.now()}`, role: 'assistant', content: reply, created_at: new Date().toISOString() });
+		} catch (reason) {
+			error = reason instanceof AccountApiError && reason.status === 401
+				? 'Сессия завершена. Войдите снова.'
+				: 'Связь временно недоступна. Напишите на hello@eldos.dev';
 		} finally {
 			isSending = false;
 		}
@@ -132,148 +137,60 @@
 		<div class="ai-panel" role="dialog" aria-label="AI-консультант Эльдоса">
 			<header class="ai-panel__header">
 				<div class="ai-avatar" aria-hidden="true">E/D</div>
-				<div>
-					<strong>E/D ASSISTANT</strong>
-					<span><i></i> {isIdentified ? 'IDENTIFIED / ONLINE' : 'IDENTITY REQUIRED'}</span>
-				</div>
-				<button type="button" aria-label="Закрыть консультанта" onclick={() => (isOpen = false)}
-					>×</button
-				>
+				<div><strong>E/D ASSISTANT</strong><span><i></i> {session ? 'ACCOUNT / ONLINE' : 'SIGN IN REQUIRED'}</span></div>
+				<button type="button" aria-label="Закрыть консультанта" onclick={() => (isOpen = false)}>×</button>
 			</header>
 
-			{#if !isIdentified}
-				<form
-					class="ai-login"
-					onsubmit={(event) => {
-						event.preventDefault();
-						submitIdentity();
-					}}
-				>
-					<div class="ai-login__visual" aria-hidden="true">
-						<div class="ai-login__rings"><i></i><i></i><i></i></div>
-						<strong>ID</strong>
-						<span>SECURE SESSION</span>
-					</div>
-
-					<div class="ai-login__intro">
-						<span>ACCOUNT_LINK / 01</span>
-						<h3>Представьтесь,<br />чтобы начать диалог.</h3>
-						<p>Контакты нужны Эльдосу, чтобы лично ответить на ваше обращение.</p>
-					</div>
-
-					<label class="ai-login__field">
-						<span>01 / ИМЯ</span>
-						<input
-							bind:value={name}
-							required
-							minlength="2"
-							maxlength="80"
-							autocomplete="name"
-							placeholder="Как к вам обращаться?"
-						/>
-					</label>
-
-					<label class="ai-login__field">
-						<span>02 / НОМЕР ТЕЛЕФОНА</span>
-						<input
-							bind:value={phone}
-							required
-							type="tel"
-							maxlength="32"
-							autocomplete="tel"
-							inputmode="tel"
-							placeholder="+7 700 000 00 00"
-						/>
-					</label>
-
-					<label class="ai-login__consent">
-						<input type="checkbox" bind:checked={consent} required />
-						<span>
-							<i aria-hidden="true">✓</i>
-							Я согласен на передачу имени, телефона и переписки Эльдосу в Telegram для ответа на обращение.
-						</span>
-					</label>
-
-					{#if identityError}<p class="ai-login__error">{identityError}</p>{/if}
-
-					<button class="ai-login__submit" type="submit">
-						<span>ВОЙТИ В ДИАЛОГ</span><i aria-hidden="true">↗</i>
-					</button>
-					<small class="ai-login__note">Данные хранятся только до закрытия вкладки</small>
-				</form>
+			{#if isLoadingSession}
+				<div class="ai-account-loading"><span>SECURE SESSION</span><strong>Проверяем аккаунт...</strong><i></i></div>
+			{:else if !session}
+				<AuthPanel onauthenticated={useSession} />
+			{:else if isProfileOpen && profile}
+				<ProfilePanel
+					{profile}
+					token={session.access_token}
+					onclose={() => (isProfileOpen = false)}
+					onsaved={(updated) => (profile = updated)}
+					onsignout={() => signOut(true)}
+					ondeleted={accountDeleted}
+				/>
 			{:else}
 				<div class="ai-identity">
-					<div><span>CONNECTED AS</span><strong>{name}</strong></div>
-					<div><span>PHONE</span><strong>{phone}</strong></div>
-					<button type="button" onclick={resetIdentity}>Сменить</button>
+					<div><span>CONNECTED AS</span><strong>{profile?.name || session.user.email}</strong></div>
+					<div><span>VERIFIED EMAIL</span><strong>{session.user.email}</strong></div>
+					<button type="button" onclick={() => (isProfileOpen = true)}>Профиль</button>
 				</div>
 
 				<div class="ai-panel__messages" aria-live="polite">
-					<div class="ai-system-line"><span>SECURE_CHANNEL</span><i></i><span>ACTIVE</span></div>
-					{#each messages as message (message.id)}
-						<div class:ai-message--user={message.role === 'user'} class="ai-message">
-							<span>{message.role === 'assistant' ? 'AI' : 'YOU'}</span>
-							<p>{message.text}</p>
-						</div>
-					{/each}
-					{#if isSending}
-						<div class="ai-typing" aria-label="Ассистент печатает"><i></i><i></i><i></i></div>
+					<div class="ai-system-line"><span>PRIVATE_HISTORY</span><i></i><span>ACTIVE</span></div>
+					{#if isLoadingHistory}
+						<div class="ai-history-state">Загружаем историю...</div>
+					{:else if messages.length === 0}
+						<div class="ai-message"><span>AI</span><p>Привет, {profile?.name || 'друг'}! Расскажите о задаче — диалог сохранится в вашем аккаунте и будет передан Эльдосу.</p></div>
+					{:else}
+						{#each messages as message (message.id)}
+							<div class:ai-message--user={message.role === 'user'} class="ai-message"><span>{message.role === 'assistant' ? 'AI' : 'YOU'}</span><p>{message.content}</p></div>
+						{/each}
 					{/if}
+					{#if isSending}<div class="ai-typing" aria-label="Ассистент печатает"><i></i><i></i><i></i></div>{/if}
 				</div>
 
-				<div class="ai-quick-prompts" aria-label="Быстрые вопросы">
-					{#each quickPrompts as prompt}
-						<button type="button" onclick={() => choosePrompt(prompt)}>{prompt}</button>
-					{/each}
-				</div>
-
-				<form
-					class="ai-form"
-					onsubmit={(event) => {
-						event.preventDefault();
-						sendMessage();
-					}}
-				>
-					<label class="ai-form__honeypot" aria-hidden="true">
-						<span>Website</span><input bind:value={website} tabindex="-1" autocomplete="off" />
-					</label>
+				<div class="ai-quick-prompts" aria-label="Быстрые вопросы">{#each quickPrompts as prompt}<button type="button" onclick={() => choosePrompt(prompt)}>{prompt}</button>{/each}</div>
+				<form class="ai-form" onsubmit={(event) => { event.preventDefault(); sendMessage(); }}>
+					<label class="ai-form__honeypot" aria-hidden="true"><span>Website</span><input bind:value={website} tabindex="-1" autocomplete="off" /></label>
 					<div class="ai-form__composer">
-						<textarea
-							bind:value={input}
-							maxlength="1200"
-							rows="2"
-							placeholder="Напишите сообщение..."
-							aria-label="Сообщение"
-							onkeydown={(event) => {
-								if (event.key === 'Enter' && !event.shiftKey) {
-									event.preventDefault();
-									sendMessage();
-								}
-							}}></textarea>
-						<button
-							type="submit"
-							disabled={!input.trim() || isSending}
-							aria-label="Отправить сообщение">↗</button
-						>
+						<textarea bind:value={input} maxlength="1200" rows="2" placeholder="Напишите сообщение..." aria-label="Сообщение" onkeydown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }}></textarea>
+						<button type="submit" disabled={!input.trim() || isSending} aria-label="Отправить сообщение">↗</button>
 					</div>
-					{#if error}<p class="ai-form__error">{error}</p>{/if}
-					<small class="ai-form__privacy"
-						>Вам и Эльдосу сохраняется полная пара: вопрос + ответ</small
-					>
+					{#if error}<p class="ai-form__error" role="alert">{error}</p>{/if}
+					<small class="ai-form__privacy">История сохранена в вашем аккаунте. <a href="/privacy" target="_blank">Конфиденциальность</a></small>
 				</form>
 			{/if}
+			{#if error && !session}<p class="auth-form__error" role="alert">{error}</p>{/if}
 		</div>
 	{/if}
 
-	<button
-		type="button"
-		class="ai-launcher"
-		aria-label={isOpen ? 'Закрыть AI-консультанта' : 'Открыть AI-консультанта'}
-		aria-expanded={isOpen}
-		onclick={() => (isOpen = !isOpen)}
-	>
-		<span class="ai-launcher__pulse"></span>
-		<span class="ai-launcher__icon">{isOpen ? '×' : 'AI'}</span>
-		<span class="ai-launcher__label">ASK E/D</span>
+	<button type="button" class="ai-launcher" aria-label={isOpen ? 'Закрыть AI-консультанта' : 'Открыть AI-консультанта'} aria-expanded={isOpen} onclick={() => (isOpen = !isOpen)}>
+		<span class="ai-launcher__pulse"></span><span class="ai-launcher__icon">{isOpen ? '×' : 'AI'}</span><span class="ai-launcher__label">ASK E/D</span>
 	</button>
 </div>
