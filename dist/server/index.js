@@ -278,7 +278,7 @@ const worker = {
 		const url = new URL(request.url);
 		if (url.pathname.startsWith('/api/')) return handleApi(request, env, url.pathname);
 		if (url.pathname === '/') {
-			url.pathname = '/site.html';
+			url.pathname = '/site';
 			return env.ASSETS.fetch(new Request(url, request));
 		}
 		const prerenderedPage = {

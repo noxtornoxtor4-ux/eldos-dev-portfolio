@@ -41,6 +41,14 @@ afterEach(() => {
 });
 
 describe('Sites worker account APIs', () => {
+	it('serves the portfolio at the clean root URL without an asset redirect', async () => {
+		const assetFetch = vi.fn(async (assetRequest: Request) => new Response(assetRequest.url));
+		const response = await worker.fetch(request('/'), { ...env, ASSETS: { fetch: assetFetch } });
+
+		expect(response.status).toBe(200);
+		expect(new URL(assetFetch.mock.calls[0][0].url).pathname).toBe('/site');
+	});
+
 	it.each([
 		['/privacy', '/privacy.html'],
 		['/auth/callback', '/auth/callback.html'],
