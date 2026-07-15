@@ -1,6 +1,5 @@
-import { cpSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { cpSync, copyFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildSync } from 'esbuild';
 
 const root = process.cwd();
 const kit = join(root, '.svelte-kit');
@@ -11,16 +10,7 @@ rmSync(dist, { recursive: true, force: true });
 mkdirSync(join(dist, 'server'), { recursive: true });
 mkdirSync(join(dist, 'client'), { recursive: true });
 
-buildSync({
-	entryPoints: [join(cloudflare, '_worker.js')],
-	outfile: join(dist, 'server', 'index.js'),
-	bundle: true,
-	format: 'esm',
-	platform: 'browser',
-	target: 'es2022',
-	external: ['cloudflare:workers'],
-	conditions: ['workerd', 'worker', 'browser']
-});
+copyFileSync(join(root, 'scripts', 'sites-worker.js'), join(dist, 'server', 'index.js'));
 
 for (const entry of readdirSync(cloudflare, { withFileTypes: true })) {
 	if (entry.name === '_worker.js') continue;

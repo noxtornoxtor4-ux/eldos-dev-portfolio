@@ -8,6 +8,7 @@
 		"/_app/version.json",
 		"/_app/immutable/*",
 		"/og.png",
-		"/robots.txt"
+		"/robots.txt",
+		"/"
 	]
 }
