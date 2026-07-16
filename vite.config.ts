@@ -1,8 +1,9 @@
-import adapter from '@sveltejs/adapter-cloudflare';
+import cloudflareAdapter from '@sveltejs/adapter-cloudflare';
+import vercelAdapter from '@sveltejs/adapter-vercel';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	plugins: [
 		sveltekit({
 			compilerOptions: {
@@ -11,7 +12,7 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			adapter: adapter()
+			adapter: mode === 'sites' ? cloudflareAdapter() : vercelAdapter()
 		})
 	]
-});
+}));
