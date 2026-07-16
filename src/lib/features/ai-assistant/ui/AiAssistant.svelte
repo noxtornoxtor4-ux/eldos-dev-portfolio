@@ -188,10 +188,7 @@
 					{:else if messages.length === 0}
 						<div class="ai-message">
 							<span>AI</span>
-							<p>
-								Привет, {profile?.name || 'друг'}! Расскажите о задаче — диалог сохранится в вашем
-								аккаунте и будет передан Эльдосу.
-							</p>
+							<p>Привет, {profile?.name || 'друг'}! Чем могу помочь?</p>
 						</div>
 					{:else}
 						{#each messages as message (message.id)}
