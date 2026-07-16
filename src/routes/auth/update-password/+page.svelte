@@ -48,6 +48,11 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Обновление пароля — Eldos Dev</title>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <main class="auth-callback">
 	<form
 		class="auth-callback__card"

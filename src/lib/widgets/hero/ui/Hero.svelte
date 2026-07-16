@@ -5,7 +5,7 @@
 	</div>
 
 	<div class="hero__content">
-		<p class="eyebrow"><span></span> FULL-STACK DEVELOPER / ALMATY — REMOTE</p>
+		<p class="eyebrow"><span></span> ELDOS DEV / FULL-STACK DEVELOPER / ALMATY — REMOTE</p>
 		<h1>
 			<span>Создаю</span>
 			<span>цифровые</span>

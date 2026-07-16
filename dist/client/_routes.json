@@ -7,8 +7,10 @@
 	"exclude": [
 		"/_app/version.json",
 		"/_app/immutable/*",
+		"/og-v2.png",
 		"/og.png",
 		"/robots.txt",
+		"/sitemap.xml",
 		"/",
 		"/auth/update-password",
 		"/privacy"

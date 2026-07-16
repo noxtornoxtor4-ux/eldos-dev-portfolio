@@ -4,6 +4,9 @@
 		name="description"
 		content="Как eldos.dev обрабатывает данные аккаунта и переписку с E/D Assistant."
 	/>
+	<link rel="canonical" href="https://eldos-dev-portfolio.vercel.app/privacy" />
+	<meta name="robots" content="index, follow" />
+	<meta property="og:url" content="https://eldos-dev-portfolio.vercel.app/privacy" />
 </svelte:head>
 
 <main class="legal-page">
