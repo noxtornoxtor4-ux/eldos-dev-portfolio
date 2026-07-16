@@ -10,7 +10,6 @@
 		"/og.png",
 		"/robots.txt",
 		"/",
-		"/auth/callback",
 		"/auth/update-password",
 		"/privacy"
 	]

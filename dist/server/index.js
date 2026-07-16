@@ -14,7 +14,7 @@ const jsonHeaders = {
  *   TELEGRAM_CHAT_ID?: string;
  *   ASSETS: { fetch(request: Request): Promise<Response> };
  * }} Env
- * @typedef {{ id: string; email: string; email_confirmed_at?: string | null }} AuthUser
+ * @typedef {{ id: string; email: string }} AuthUser
  * @typedef {{ id: string; name: string; phone: string }} ProfileRow
  * @typedef {{ role: 'user' | 'assistant'; content: string }} MessageRow
  * @typedef {{ type?: string; text?: unknown }} ResponseContent
@@ -134,7 +134,6 @@ async function requireUser(request, env) {
 	/** @type {AuthUser} */
 	const user = await response.json();
 	if (!user?.id || !user?.email) throw new HttpError(401, 'Invalid session');
-	if (!user.email_confirmed_at) throw new HttpError(403, 'Email confirmation required');
 
 	return user;
 }
@@ -341,7 +340,6 @@ const worker = {
 		}
 		const prerenderedPage = {
 			'/privacy': '/privacy.html',
-			'/auth/callback': '/auth/callback.html',
 			'/auth/update-password': '/auth/update-password.html'
 		}[url.pathname];
 		if (prerenderedPage) {

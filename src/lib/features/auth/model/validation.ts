@@ -34,8 +34,6 @@ export function getAuthErrorMessage(message: string) {
 	const normalized = message.toLowerCase();
 
 	if (normalized.includes('invalid login credentials')) return 'Неверный email или пароль.';
-	if (normalized.includes('email not confirmed'))
-		return 'Сначала подтвердите email по ссылке из письма.';
 	if (normalized.includes('already registered') || normalized.includes('already been registered')) {
 		return 'Аккаунт с таким email уже существует.';
 	}

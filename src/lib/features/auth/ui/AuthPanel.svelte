@@ -15,7 +15,6 @@
 	let { onauthenticated }: Props = $props();
 	let mode = $state<'signin' | 'signup' | 'recover'>('signin');
 	let isSubmitting = $state(false);
-	let confirmationSent = $state(false);
 	let recoverySent = $state(false);
 	let error = $state('');
 	let fieldErrors = $state<Record<string, string>>({});
@@ -33,7 +32,6 @@
 		mode = next;
 		error = '';
 		fieldErrors = {};
-		confirmationSent = false;
 		recoverySent = false;
 	}
 
@@ -58,9 +56,7 @@
 				password
 			});
 			if (authError) throw authError;
-			if (!data.session || !data.user.email_confirmed_at) {
-				throw new Error('Email not confirmed');
-			}
+			if (!data.session) throw new Error('Session was not created');
 			onauthenticated?.(data.session);
 		} catch (reason) {
 			error = getAuthErrorMessage(reason instanceof Error ? reason.message : 'unknown');
@@ -81,16 +77,12 @@
 				email: input.email.trim().toLowerCase(),
 				password: input.password,
 				options: {
-					emailRedirectTo: `${location.origin}/auth/callback`,
 					data: { name: input.name.trim(), phone: input.phone.trim() }
 				}
 			});
 			if (authError) throw authError;
-			if (data.session && data.user?.email_confirmed_at) {
-				onauthenticated?.(data.session);
-				return;
-			}
-			confirmationSent = true;
+			if (!data.session) throw new Error('Session was not created');
+			onauthenticated?.(data.session);
 		} catch (reason) {
 			error = getAuthErrorMessage(reason instanceof Error ? reason.message : 'unknown');
 		} finally {
@@ -130,14 +122,7 @@
 		<span>SECURE IDENTITY</span>
 	</div>
 
-	{#if confirmationSent}
-		<div class="auth-state" aria-live="polite">
-			<span>EMAIL_CONFIRMATION / SENT</span>
-			<h3>Проверьте почту</h3>
-			<p>Мы отправили ссылку подтверждения на <strong>{input.email}</strong>.</p>
-			<button type="button" onclick={() => setMode('signin')}>Вернуться ко входу</button>
-		</div>
-	{:else if recoverySent}
+	{#if recoverySent}
 		<div class="auth-state" aria-live="polite">
 			<span>RECOVERY_LINK / SENT</span>
 			<h3>Письмо отправлено</h3>

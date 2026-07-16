@@ -53,7 +53,6 @@ describe('Sites worker account APIs', () => {
 
 	it.each([
 		['/privacy', '/privacy.html'],
-		['/auth/callback', '/auth/callback.html'],
 		['/auth/update-password', '/auth/update-password.html']
 	])('maps the browser route %s to its prerendered page', async (path, assetPath) => {
 		const assetFetch = vi.fn(async (assetRequest: Request) => new Response(assetRequest.url));
@@ -277,6 +276,27 @@ describe('Sites worker account APIs', () => {
 			.find((url) => url.includes('/rest/v1/chat_messages'));
 		expect(historyUrl).toContain(`user_id=eq.${user.id}`);
 		expect(historyUrl).toContain('order=created_at.asc');
+	});
+
+	it('allows an authenticated user without an email-confirmation timestamp', async () => {
+		const rows = [
+			{ id: 'message-1', role: 'user', content: 'Привет', created_at: '2026-07-15T12:00:00Z' }
+		];
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.endsWith('/auth/v1/user')) {
+				return Response.json({ ...user, email_confirmed_at: null });
+			}
+			if (url.includes('/rest/v1/chat_messages')) return Response.json(rows);
+			return new Response(null, { status: 404 });
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const response = await worker.fetch(request('/api/history', { headers: authHeaders() }), env);
+		const data = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(data.messages).toEqual(rows);
 	});
 
 	it('returns a profile scoped to the verified account', async () => {
