@@ -1,45 +1,39 @@
 import type { Project, SkillGroup } from '$lib/shared/model/types';
 
+// `id` is the target section's element id; the header renders it as an in-page fragment link.
 export const navigation = [
-	{ label: 'Проекты', href: '#projects' },
-	{ label: 'Экспертиза', href: '#expertise' },
-	{ label: 'Обо мне', href: '#about' },
-	{ label: 'Контакт', href: '#contact' }
+	{ label: 'Проекты', id: 'projects' },
+	{ label: 'Экспертиза', id: 'expertise' },
+	{ label: 'Обо мне', id: 'about' },
+	{ label: 'Контакт', id: 'contact' }
 ] as const;
 
 export const projects: Project[] = [
 	{
 		id: '01',
-		title: 'Neon Ledger',
-		category: 'Fintech / Product Engineering',
+		title: 'PrimeDent',
+		category: 'Healthcare / Web App',
 		description:
-			'Платформа управления финансами для команд: единый обзор, умные сценарии и решения без лишнего шума.',
-		result: '−41% времени на рутину',
-		stack: ['SvelteKit', 'TypeScript', 'PostgreSQL'],
+			'Сайт и веб-приложение стоматологии: филиалы, каталог услуг с ценами и запись на приём. Врачи регистрируются сами, карточка публикуется после подтверждения клиникой, отзывы привязаны к своему филиалу.',
+		result: 'Филиалы, врачи и отзывы в одной системе',
+		stack: ['SvelteKit', 'TypeScript', 'Cloudflare'],
 		year: '2026',
-		tone: 'cyan'
+		tone: 'cyan',
+		visual: 'clinic',
+		href: 'https://primedent-aa9.pages.dev/'
 	},
 	{
 		id: '02',
-		title: 'Nomad Cloud',
-		category: 'DevTools / Cloud Infrastructure',
+		title: 'Говорим онлайн',
+		category: 'Telegram Bot / Booking',
 		description:
-			'Панель облачной инфраструктуры, которая превращает сложные операции в ясный и предсказуемый поток.',
-		result: '3× быстрее деплой',
-		stack: ['Node.js', 'Go', 'ClickHouse'],
-		year: '2025',
-		tone: 'magenta'
-	},
-	{
-		id: '03',
-		title: 'Qadam AI',
-		category: 'EdTech / AI Experience',
-		description:
-			'Персональный AI-наставник с адаптивными маршрутами обучения и понятной аналитикой прогресса.',
-		result: '+28% к завершению курсов',
-		stack: ['Svelte', 'Python', 'OpenAI'],
-		year: '2025',
-		tone: 'violet'
+			'Бот онлайн-записи: клиент выбирает свободное время и записывается в несколько нажатий прямо в Telegram — без звонков и без установки отдельного приложения.',
+		result: 'Запись прямо в Telegram',
+		stack: ['Node.js', 'Telegram Bot API'],
+		year: '2026',
+		tone: 'magenta',
+		visual: 'booking-bot',
+		href: 'https://t.me/govrim_online_bot'
 	}
 ];
 

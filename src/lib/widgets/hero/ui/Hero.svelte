@@ -40,7 +40,7 @@
 			<p><span>02</span>&nbsp;&nbsp;name: <em>'Эльдос'</em>,</p>
 			<p><span>03</span>&nbsp;&nbsp;focus: <em>'impact'</em>,</p>
 			<p><span>04</span>&nbsp;&nbsp;status: <em>'building'</em></p>
-			<p><span>05</span>{'}'};</p>
+			<p><span>05</span>};</p>
 		</div>
 		<div class="system-card__stats">
 			<div><strong>5+</strong><span>лет опыта</span></div>

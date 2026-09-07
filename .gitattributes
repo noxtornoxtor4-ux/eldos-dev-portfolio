@@ -1,0 +1,3 @@
+# core.autocrlf rewrites files to CRLF on checkout, and Prettier is configured for LF,
+# so `bun run lint` would fail after every branch switch on unchanged files.
+* text=auto eol=lf

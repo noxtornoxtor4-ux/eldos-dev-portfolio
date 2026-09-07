@@ -7,13 +7,15 @@
 <section class="section projects" id="projects">
 	<SectionLabel index="01" text="SELECTED WORK" />
 	<div class="section-heading">
-		<h2>Проекты с<br /><em>измеримым эффектом.</em></h2>
-		<p>Выбранные продукты, в которых инженерия работает на бизнес, а детали — на человека.</p>
+		<h2>Продукты,<br /><em>которые работают.</em></h2>
+		<p>Каждый проект можно открыть и попробовать — ссылки ведут на живые продукты.</p>
 	</div>
 
 	<div class="projects-grid">
-		{#each projects as project, index}
-			<ProjectCard {project} featured={index === 0} />
+		{#each projects as project, index (project.id)}
+			<!-- The grid is two columns wide. Widening the first card only helps when the
+			     rest still pair up evenly, otherwise the last card is left beside a gap. -->
+			<ProjectCard {project} featured={index === 0 && projects.length % 2 === 1} />
 		{/each}
 	</div>
 </section>

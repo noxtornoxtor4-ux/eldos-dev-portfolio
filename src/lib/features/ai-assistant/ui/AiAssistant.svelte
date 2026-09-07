@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Session, SupabaseClient } from '@supabase/supabase-js';
+	import { resolve } from '$app/paths';
 	import AuthPanel from '$lib/features/auth/ui/AuthPanel.svelte';
 	import ProfilePanel from '$lib/features/profile/ui/ProfilePanel.svelte';
 	import {
@@ -204,8 +205,9 @@
 				</div>
 
 				<div class="ai-quick-prompts" aria-label="Быстрые вопросы">
-					{#each quickPrompts as prompt}<button type="button" onclick={() => choosePrompt(prompt)}
-							>{prompt}</button
+					{#each quickPrompts as prompt (prompt)}<button
+							type="button"
+							onclick={() => choosePrompt(prompt)}>{prompt}</button
 						>{/each}
 				</div>
 				<form
@@ -243,7 +245,7 @@
 					</div>
 					{#if error}<p class="ai-form__error" role="alert">{error}</p>{/if}
 					<small class="ai-form__privacy"
-						>История сохранена в вашем аккаунте. <a href="/privacy" target="_blank"
+						>История сохранена в вашем аккаунте. <a href={resolve('/privacy')} target="_blank"
 							>Конфиденциальность</a
 						></small
 					>

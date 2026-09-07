@@ -95,7 +95,8 @@ describe('Sites worker account APIs', () => {
 			{ role: 'user', content: 'Предыдущий вопрос' }
 		];
 		const aiReply = 'Конечно. Расскажите, какую задачу должен решать ваш продукт?';
-		const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+		// `_init` is unused here but keeps `mock.calls` typed as a two-element tuple.
+		const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
 			if (url.includes('/rest/v1/profiles')) {
@@ -187,14 +188,64 @@ describe('Sites worker account APIs', () => {
 		expect(aiReply).not.toMatch(/Telegram|передал Эльдосу|24 час/i);
 	});
 
+	it('keeps the Telegram message within the 4096 character limit when escaping expands it', async () => {
+		// '&' becomes '&amp;', so a maximum-length message of ampersands would otherwise produce a
+		// payload Telegram rejects with 400 — surfacing to the visitor as a failed delivery.
+		const longMessage = '&'.repeat(1200);
+		const longReply = '<'.repeat(1200);
+		// `_init` is unused here but keeps `mock.calls` typed as a two-element tuple.
+		const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+			const url = String(input);
+			if (url.endsWith('/auth/v1/user')) return Response.json(user);
+			if (url.includes('/rest/v1/profiles')) {
+				return Response.json([{ id: user.id, name: 'Visitor', phone: '+7 700 000 00 00' }]);
+			}
+			if (url.includes('/rest/v1/chat_messages?')) return Response.json([]);
+			if (url === 'https://api.groq.com/openai/v1/responses') {
+				return Response.json({
+					output: [
+						{
+							type: 'message',
+							role: 'assistant',
+							content: [{ type: 'output_text', text: longReply }]
+						}
+					]
+				});
+			}
+			if (url.endsWith('/rest/v1/chat_messages')) return new Response(null, { status: 201 });
+			if (url.includes('api.telegram.org')) return Response.json({ ok: true, result: {} });
+			return new Response(null, { status: 404 });
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const response = await worker.fetch(
+			request('/api/chat', {
+				method: 'POST',
+				headers: authHeaders({
+					'content-type': 'application/json',
+					referer: `https://eldos.dev/?q=${'&'.repeat(400)}`
+				}),
+				body: JSON.stringify({ message: longMessage })
+			}),
+			env
+		);
+
+		expect(response.status).toBe(200);
+		const telegramCall = fetchMock.mock.calls.find(([url]) =>
+			String(url).includes('api.telegram.org')
+		);
+		const telegramText = JSON.parse(String(telegramCall?.[1]?.body)).text;
+		expect(telegramText.length).toBeLessThanOrEqual(4096);
+		// A cut must never land inside an entity, which would break parse_mode: 'HTML'.
+		expect(telegramText).not.toMatch(/&[a-z]*…/);
+	});
+
 	it('rejects authenticated chat when Groq is not configured', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
 			if (url.includes('/rest/v1/profiles')) {
-				return Response.json([
-					{ id: user.id, name: 'Visitor', phone: '+7 700 000 00 00' }
-				]);
+				return Response.json([{ id: user.id, name: 'Visitor', phone: '+7 700 000 00 00' }]);
 			}
 			if (url.includes('/rest/v1/chat_messages?')) return Response.json([]);
 			return new Response(null, { status: 404 });
@@ -211,9 +262,7 @@ describe('Sites worker account APIs', () => {
 		);
 
 		expect(response.status).toBe(503);
-		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('api.groq.com'))).toBe(
-			false
-		);
+		expect(fetchMock.mock.calls.some(([url]) => String(url).includes('api.groq.com'))).toBe(false);
 	});
 
 	it('returns a generic error for an empty Groq response', async () => {
@@ -221,9 +270,7 @@ describe('Sites worker account APIs', () => {
 			const url = String(input);
 			if (url.endsWith('/auth/v1/user')) return Response.json(user);
 			if (url.includes('/rest/v1/profiles')) {
-				return Response.json([
-					{ id: user.id, name: 'Visitor', phone: '+7 700 000 00 00' }
-				]);
+				return Response.json([{ id: user.id, name: 'Visitor', phone: '+7 700 000 00 00' }]);
 			}
 			if (url.includes('/rest/v1/chat_messages?')) return Response.json([]);
 			if (url === 'https://api.groq.com/openai/v1/responses') {

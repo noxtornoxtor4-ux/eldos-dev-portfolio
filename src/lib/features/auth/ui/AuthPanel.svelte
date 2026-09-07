@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Session } from '@supabase/supabase-js';
+	import { resolve } from '$app/paths';
 	import { getSupabase } from '$lib/shared/api/supabase/client';
 	import type { RegistrationInput } from '$lib/shared/model/auth';
 	import {
@@ -250,7 +251,7 @@
 					>{isSubmitting ? 'СОЗДАЁМ...' : 'СОЗДАТЬ АККАУНТ'} <i>↗</i></button
 				>
 				<p class="auth-form__privacy">
-					Создавая аккаунт, вы принимаете <a href="/privacy" target="_blank"
+					Создавая аккаунт, вы принимаете <a href={resolve('/privacy')} target="_blank"
 						>политику конфиденциальности</a
 					>.
 				</p>

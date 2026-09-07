@@ -40,12 +40,34 @@ function escapeHtml(value) {
 	return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
+// Telegram rejects sendMessage payloads longer than 4096 characters. Escaping expands a field up
+// to fivefold ('&' becomes '&amp;'), so every variable-length block is bounded after escaping.
+const TELEGRAM_FIELD_LIMIT = 1500;
+const TELEGRAM_REFERER_LIMIT = 300;
+
+/** @param {unknown} value @param {number} limit */
+function escapeHtmlBounded(value, limit) {
+	const escaped = escapeHtml(value);
+	if (escaped.length <= limit) return escaped;
+	// Cutting inside an entity such as '&amp;' would leave Telegram's HTML parser with a broken tag.
+	return `${escaped.slice(0, limit).replace(/&[a-z]*$/, '')}…`;
+}
+
+// The project facts below mirror `src/lib/shared/config/site.ts`. They live here as prompt
+// copy because the worker is bundled on its own and cannot import the site config; the
+// assistant-copy test fails if the two ever drift apart.
 const assistantInstructions = [
 	'Ты E/D Assistant — дружелюбный AI-помощник на портфолио разработчика Эльдоса.',
 	'Отвечай на языке пользователя, естественно, полезно и кратко.',
 	'Если для точного ответа не хватает данных, задай один понятный уточняющий вопрос.',
 	'Не говори, что сообщение пересылается в Telegram или Эльдосу.',
 	'Не обещай, что Эльдос ответит позже, и не выдумывай личные факты о нём.',
+	'О работах Эльдоса рассказывай только это. PrimeDent — сайт и веб-приложение стоматологии:',
+	'филиалы, каталог услуг с ценами, запись на приём, саморегистрация врачей с подтверждением',
+	'клиникой и отзывы, привязанные к филиалу; сделан на SvelteKit и Cloudflare.',
+	'«Говорим онлайн» — телеграм-бот онлайн-записи на Node.js: клиент выбирает свободное время',
+	'и записывается прямо в Telegram.',
+	'Других проектов Эльдосу не приписывай и цифр вроде процентов роста не выдумывай.',
 	'Ограничь ответ 900 символами.'
 ].join(' ');
 
@@ -284,15 +306,15 @@ async function handleChat(request, env) {
 	const telegramText = [
 		'<b>✦ Новое обращение с eldos.dev</b>',
 		'',
-		`<b>Контакт:</b> ${escapeHtml(profile.name)}`,
+		`<b>Контакт:</b> ${escapeHtmlBounded(profile.name, TELEGRAM_REFERER_LIMIT)}`,
 		`<b>Email:</b> <code>${escapeHtml(user.email)}</code>`,
 		`<b>Телефон:</b> <code>${escapeHtml(profile.phone)}</code>`,
 		'',
-		`<b>Сообщение посетителя:</b>\n${escapeHtml(message)}`,
+		`<b>Сообщение посетителя:</b>\n${escapeHtmlBounded(message, TELEGRAM_FIELD_LIMIT)}`,
 		'',
-		`<b>Ответ E/D Assistant:</b>\n${escapeHtml(reply)}`,
+		`<b>Ответ E/D Assistant:</b>\n${escapeHtmlBounded(reply, TELEGRAM_FIELD_LIMIT)}`,
 		'',
-		`<b>Страница:</b> ${escapeHtml(referer.slice(0, 300))}`,
+		`<b>Страница:</b> ${escapeHtmlBounded(referer, TELEGRAM_REFERER_LIMIT)}`,
 		`<b>Время:</b> ${new Date().toISOString()}`
 	].join('\n');
 

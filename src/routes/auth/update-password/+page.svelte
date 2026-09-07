@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { getSupabase } from '$lib/shared/api/supabase/client';
 	import { validatePassword } from '$lib/features/auth/model/validation';
 
@@ -39,7 +40,7 @@
 			const supabase = await getSupabase();
 			const result = await supabase.auth.updateUser({ password });
 			if (result.error) throw result.error;
-			await goto('/?assistant=open');
+			await goto(resolve('/?assistant=open'));
 		} catch {
 			error = 'Не удалось обновить пароль. Запросите новую ссылку.';
 		} finally {
