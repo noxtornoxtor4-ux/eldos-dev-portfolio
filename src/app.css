@@ -784,6 +784,12 @@ ul {
 		0 0 30px color-mix(in srgb, var(--accent) 7%, transparent);
 }
 
+/* A featured card spans both columns, so the artwork grows with it instead of
+   floating in the middle of a much wider frame. */
+.project-card--featured .clinic-panel {
+	width: min(680px, 60%);
+}
+
 .clinic-rows {
 	padding: 14px 18px 4px;
 }
@@ -833,6 +839,10 @@ ul {
 	gap: 12px;
 	width: min(340px, 76%);
 	transform: translate(-50%, -50%);
+}
+
+.project-card--featured .bot-chat {
+	width: min(460px, 46%);
 }
 
 .bot-bubble {

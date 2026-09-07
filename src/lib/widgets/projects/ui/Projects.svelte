@@ -13,7 +13,9 @@
 
 	<div class="projects-grid">
 		{#each projects as project, index (project.id)}
-			<ProjectCard {project} featured={index === 0} />
+			<!-- The grid is two columns wide. Widening the first card only helps when the
+			     rest still pair up evenly, otherwise the last card is left beside a gap. -->
+			<ProjectCard {project} featured={index === 0 && projects.length % 2 === 1} />
 		{/each}
 	</div>
 </section>
