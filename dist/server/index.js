@@ -40,6 +40,19 @@ function escapeHtml(value) {
 	return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
+// Telegram rejects sendMessage payloads longer than 4096 characters. Escaping expands a field up
+// to fivefold ('&' becomes '&amp;'), so every variable-length block is bounded after escaping.
+const TELEGRAM_FIELD_LIMIT = 1500;
+const TELEGRAM_REFERER_LIMIT = 300;
+
+/** @param {unknown} value @param {number} limit */
+function escapeHtmlBounded(value, limit) {
+	const escaped = escapeHtml(value);
+	if (escaped.length <= limit) return escaped;
+	// Cutting inside an entity such as '&amp;' would leave Telegram's HTML parser with a broken tag.
+	return `${escaped.slice(0, limit).replace(/&[a-z]*$/, '')}…`;
+}
+
 const assistantInstructions = [
 	'Ты E/D Assistant — дружелюбный AI-помощник на портфолио разработчика Эльдоса.',
 	'Отвечай на языке пользователя, естественно, полезно и кратко.',
@@ -284,15 +297,15 @@ async function handleChat(request, env) {
 	const telegramText = [
 		'<b>✦ Новое обращение с eldos.dev</b>',
 		'',
-		`<b>Контакт:</b> ${escapeHtml(profile.name)}`,
+		`<b>Контакт:</b> ${escapeHtmlBounded(profile.name, TELEGRAM_REFERER_LIMIT)}`,
 		`<b>Email:</b> <code>${escapeHtml(user.email)}</code>`,
 		`<b>Телефон:</b> <code>${escapeHtml(profile.phone)}</code>`,
 		'',
-		`<b>Сообщение посетителя:</b>\n${escapeHtml(message)}`,
+		`<b>Сообщение посетителя:</b>\n${escapeHtmlBounded(message, TELEGRAM_FIELD_LIMIT)}`,
 		'',
-		`<b>Ответ E/D Assistant:</b>\n${escapeHtml(reply)}`,
+		`<b>Ответ E/D Assistant:</b>\n${escapeHtmlBounded(reply, TELEGRAM_FIELD_LIMIT)}`,
 		'',
-		`<b>Страница:</b> ${escapeHtml(referer.slice(0, 300))}`,
+		`<b>Страница:</b> ${escapeHtmlBounded(referer, TELEGRAM_REFERER_LIMIT)}`,
 		`<b>Время:</b> ${new Date().toISOString()}`
 	].join('\n');
 
