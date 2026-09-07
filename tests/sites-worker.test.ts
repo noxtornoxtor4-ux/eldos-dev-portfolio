@@ -20,7 +20,7 @@ const env = {
 	SUPABASE_ANON_KEY: 'public-anon-key',
 	SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_server-key',
 	GROQ_API_KEY: 'groq-server-secret',
-	GROQ_MODEL: 'llama-3.3-70b-versatile',
+	GROQ_MODEL: 'openai/gpt-oss-120b',
 	TELEGRAM_BOT_TOKEN: 'telegram-secret-token',
 	TELEGRAM_CHAT_ID: '5892009410',
 	ASSETS: { fetch: vi.fn() }
@@ -153,7 +153,7 @@ describe('Sites worker account APIs', () => {
 		const groqHeaders = new Headers(groqCall?.[1]?.headers);
 		const groqBody = JSON.parse(String(groqCall?.[1]?.body));
 		expect(groqHeaders.get('authorization')).toBe(`Bearer ${env.GROQ_API_KEY}`);
-		expect(groqBody.model).toBe('llama-3.3-70b-versatile');
+		expect(groqBody.model).toBe('openai/gpt-oss-120b');
 		expect(groqBody.input).toEqual([
 			{ role: 'user', content: 'Предыдущий вопрос' },
 			{ role: 'assistant', content: 'Предыдущий ответ' },

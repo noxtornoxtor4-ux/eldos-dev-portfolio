@@ -11,7 +11,7 @@ describe('Groq privacy and configuration', () => {
 		expect(privacy).toContain('истори');
 		expect(privacy).not.toContain('OpenAI');
 		expect(envExample).toContain('GROQ_API_KEY=');
-		expect(envExample).toContain('GROQ_MODEL=llama-3.3-70b-versatile');
+		expect(envExample).toContain('GROQ_MODEL=openai/gpt-oss-120b');
 		expect(envExample).not.toMatch(/GROQ_API_KEY=.+/);
 		expect(envExample).not.toContain('OPENAI_API_KEY');
 	});
