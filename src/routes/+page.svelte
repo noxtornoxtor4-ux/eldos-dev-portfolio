@@ -28,12 +28,18 @@
 			}
 		]
 	});
+
+	// Svelte has no way to write a literal <script> element in markup, so the JSON-LD tag is
+	// assembled here and injected with {@html}. The closing tag is split so it cannot terminate
+	// this script block early. `structuredData` comes from the static object above — never user input.
+	const jsonLdTag = `<script type="application/ld+json">${structuredData}</` + `script>`;
 </script>
 
 <svelte:head>
 	<link rel="canonical" href="https://eldos-dev-portfolio.vercel.app/" />
 	<meta name="robots" content="index, follow, max-image-preview:large" />
-	{@html `<script type="application/ld+json">${structuredData}</script>`}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- static JSON-LD, see jsonLdTag above -->
+	{@html jsonLdTag}
 </svelte:head>
 
 <HomePage />

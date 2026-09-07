@@ -10,8 +10,8 @@
 	</a>
 
 	<nav class:site-nav--open={menuOpen} class="site-nav" aria-label="Основная навигация">
-		{#each navigation as item, index}
-			<a href={item.href} onclick={() => (menuOpen = false)}>
+		{#each navigation as item, index (item.id)}
+			<a href="#{item.id}" onclick={() => (menuOpen = false)}>
 				<span>0{index + 1}</span>{item.label}
 			</a>
 		{/each}

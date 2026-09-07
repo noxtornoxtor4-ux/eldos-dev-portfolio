@@ -1,10 +1,11 @@
 import type { Project, SkillGroup } from '$lib/shared/model/types';
 
+// `id` is the target section's element id; the header renders it as an in-page fragment link.
 export const navigation = [
-	{ label: 'Проекты', href: '#projects' },
-	{ label: 'Экспертиза', href: '#expertise' },
-	{ label: 'Обо мне', href: '#about' },
-	{ label: 'Контакт', href: '#contact' }
+	{ label: 'Проекты', id: 'projects' },
+	{ label: 'Экспертиза', id: 'expertise' },
+	{ label: 'Обо мне', id: 'about' },
+	{ label: 'Контакт', id: 'contact' }
 ] as const;
 
 export const projects: Project[] = [

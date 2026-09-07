@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { resolve } from '$app/paths';
+</script>
+
 <svelte:head>
 	<title>Политика конфиденциальности — eldos.dev</title>
 	<meta
@@ -12,7 +16,9 @@
 <main class="legal-page">
 	<div class="legal-page__grid" aria-hidden="true"></div>
 	<article class="legal-page__card">
-		<header><a href="/">← ELDOS.DEV</a><span>PRIVACY / 2026-07-16</span></header>
+		<header>
+			<a href={resolve('/')}>← ELDOS.DEV</a><span>PRIVACY / 2026-07-16</span>
+		</header>
 		<p class="legal-page__eyebrow">SECURE DATA PROTOCOL</p>
 		<h1>Политика конфиденциальности</h1>
 		<p class="legal-page__lead">
@@ -34,8 +40,8 @@
 			<div>
 				<h2>Зачем нужны данные</h2>
 				<p>
-					Они используются для входа в аккаунт, восстановления пароля, сохранения вашей
-					истории и ответа на обращение.
+					Они используются для входа в аккаунт, восстановления пароля, сохранения вашей истории и
+					ответа на обращение.
 				</p>
 			</div>
 		</section>
@@ -44,9 +50,8 @@
 			<div>
 				<h2>Ответы нейросети</h2>
 				<p>
-					Ваш вопрос и последние сообщения из истории передаются Groq только для создания
-					ответа E/D Assistant. Имя, телефон, пароль и токены доступа в запрос модели не
-					включаются.
+					Ваш вопрос и последние сообщения из истории передаются Groq только для создания ответа E/D
+					Assistant. Имя, телефон, пароль и токены доступа в запрос модели не включаются.
 				</p>
 			</div>
 		</section>
@@ -65,8 +70,8 @@
 			<div>
 				<h2>Supabase</h2>
 				<p>
-					Supabase используется для защищённой авторизации и хранения профиля и переписки.
-					Доступ к записям ограничен владельцем аккаунта и серверной частью сайта.
+					Supabase используется для защищённой авторизации и хранения профиля и переписки. Доступ к
+					записям ограничен владельцем аккаунта и серверной частью сайта.
 				</p>
 			</div>
 		</section>
@@ -93,7 +98,9 @@
 		</section>
 
 		<footer>
-			<a href="/?assistant=open">Открыть E/D Assistant ↗</a><span>ELDOS.DEV / ALMATY</span>
+			<a href={resolve('/?assistant=open')}>Открыть E/D Assistant ↗</a><span
+				>ELDOS.DEV / ALMATY</span
+			>
 		</footer>
 	</article>
 </main>

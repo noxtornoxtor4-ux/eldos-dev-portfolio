@@ -7,3 +7,9 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Generated build output (committed for hosting)
+/dist/
+
+# Planning artifacts
+/docs/superpowers/

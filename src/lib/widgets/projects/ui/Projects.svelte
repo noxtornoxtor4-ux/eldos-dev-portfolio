@@ -12,7 +12,7 @@
 	</div>
 
 	<div class="projects-grid">
-		{#each projects as project, index}
+		{#each projects as project, index (project.id)}
 			<ProjectCard {project} featured={index === 0} />
 		{/each}
 	</div>

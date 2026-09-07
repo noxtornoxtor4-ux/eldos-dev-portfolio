@@ -34,7 +34,7 @@
 			<div class="cloud-status"><span></span> ALL SYSTEMS OPERATIONAL</div>
 		{:else}
 			<div class="ai-grid">
-				{#each Array(20) as _, i}
+				{#each Array(20), i (i)}
 					<i class:active={[3, 6, 7, 11, 12, 13, 17].includes(i)}></i>
 				{/each}
 			</div>
@@ -52,7 +52,7 @@
 
 	<div class="project-card__footer">
 		<ul aria-label="Технологии">
-			{#each project.stack as item}
+			{#each project.stack as item (item)}
 				<li>{item}</li>
 			{/each}
 		</ul>

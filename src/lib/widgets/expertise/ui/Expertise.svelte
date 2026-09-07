@@ -18,14 +18,14 @@
 		</div>
 
 		<div class="skill-list">
-			{#each skillGroups as group}
+			{#each skillGroups as group (group.index)}
 				<article class="skill-row">
 					<span class="skill-row__index">/{group.index}</span>
 					<div>
 						<h3>{group.title}</h3>
 						<p>{group.description}</p>
 						<ul>
-							{#each group.tools as tool}
+							{#each group.tools as tool (tool)}
 								<li>{tool}</li>
 							{/each}
 						</ul>
