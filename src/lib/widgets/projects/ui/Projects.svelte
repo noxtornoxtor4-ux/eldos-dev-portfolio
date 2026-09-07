@@ -7,8 +7,8 @@
 <section class="section projects" id="projects">
 	<SectionLabel index="01" text="SELECTED WORK" />
 	<div class="section-heading">
-		<h2>Проекты с<br /><em>измеримым эффектом.</em></h2>
-		<p>Выбранные продукты, в которых инженерия работает на бизнес, а детали — на человека.</p>
+		<h2>Продукты,<br /><em>которые работают.</em></h2>
+		<p>Каждый проект можно открыть и попробовать — ссылки ведут на живые продукты.</p>
 	</div>
 
 	<div class="projects-grid">
