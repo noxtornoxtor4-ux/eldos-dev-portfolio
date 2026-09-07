@@ -1243,7 +1243,7 @@ ul {
 	color: var(--muted);
 }
 
-.copy-button {
+.email-link {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -1255,18 +1255,20 @@ ul {
 	font-size: clamp(18px, 2vw, 28px);
 	font-weight: 600;
 	letter-spacing: -0.03em;
+	color: inherit;
+	text-decoration: none;
 	background: rgba(52, 245, 255, 0.04);
 	transition: 180ms ease;
 }
 
-.copy-button:hover,
-.copy-button.is-copied {
+.email-link:hover,
+.email-link:focus-visible {
 	color: #050609;
 	background: var(--cyan);
 	box-shadow: 0 0 38px rgba(52, 245, 255, 0.14);
 }
 
-.copy-button__icon {
+.email-link__icon {
 	display: grid;
 	place-items: center;
 	width: 40px;
@@ -2825,7 +2827,7 @@ ul {
 		margin-top: 25px;
 	}
 
-	.copy-button {
+	.email-link {
 		min-height: 68px;
 		padding: 0 16px;
 	}

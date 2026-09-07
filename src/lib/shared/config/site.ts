@@ -60,4 +60,4 @@ export const skillGroups: SkillGroup[] = [
 	}
 ];
 
-export const email = 'hello@eldos.dev';
+export const email = 'noxtornoxtor4@gmail.com';

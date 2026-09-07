@@ -138,7 +138,7 @@
 			error =
 				reason instanceof AccountApiError && reason.status === 401
 					? 'Сессия завершена. Войдите снова.'
-					: 'Связь временно недоступна. Напишите на hello@eldos.dev';
+					: 'Связь временно недоступна. Напишите на noxtornoxtor4@gmail.com';
 		} finally {
 			isSending = false;
 		}
