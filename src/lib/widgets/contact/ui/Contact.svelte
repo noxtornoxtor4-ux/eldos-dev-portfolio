@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CopyEmailButton from '$lib/features/copy-email/ui/CopyEmailButton.svelte';
+	import EmailLink from '$lib/features/email-link/ui/EmailLink.svelte';
 	import { email } from '$lib/shared/config/site';
 	import SectionLabel from '$lib/shared/ui/SectionLabel.svelte';
 </script>
@@ -14,11 +14,11 @@
 			Расскажите, что хотите создать. Отвечу по делу, задам правильные вопросы и предложу следующий
 			шаг.
 		</p>
-		<CopyEmailButton {email} />
+		<EmailLink {email} />
 		<div class="contact__meta">
-			<span>ALMATY / UTC+5</span>
+			<span>KYRGYZSTAN / UTC+6</span>
 			<span>RESPONSE TIME ≈ 24H</span>
-			<span>RU / EN / KZ</span>
+			<span>RU / EN / KG</span>
 		</div>
 	</div>
 </section>

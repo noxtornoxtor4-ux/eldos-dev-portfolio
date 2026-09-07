@@ -90,8 +90,8 @@
 			<div>
 				<h2>Связь</h2>
 				<p>
-					По вопросам обработки данных напишите на <a href="mailto:hello@eldos.dev"
-						>hello@eldos.dev</a
+					По вопросам обработки данных напишите на <a href="mailto:noxtornoxtor4@gmail.com"
+						>noxtornoxtor4@gmail.com</a
 					>.
 				</p>
 			</div>
@@ -99,7 +99,7 @@
 
 		<footer>
 			<a href={resolve('/?assistant=open')}>Открыть E/D Assistant ↗</a><span
-				>ELDOS.DEV / ALMATY</span
+				>ELDOS.DEV / KYRGYZSTAN</span
 			>
 		</footer>
 	</article>
