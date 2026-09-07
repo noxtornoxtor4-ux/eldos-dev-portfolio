@@ -116,13 +116,18 @@ async function generateAssistantReply(env, message, history) {
 			'content-type': 'application/json'
 		},
 		body: JSON.stringify({
-			model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+			model: env.GROQ_MODEL || 'openai/gpt-oss-120b',
 			instructions: assistantInstructions,
 			input: [...history, { role: 'user', content: message }],
 			max_output_tokens: 500
 		})
 	});
-	if (!response.ok) throw new HttpError(502, 'AI service is temporarily unavailable');
+	if (!response.ok) {
+		// Without this the visitor's «связь недоступна» is the only symptom, and a retired model
+		// or a revoked key look identical. The body carries Groq's own reason and no credentials.
+		console.error('Groq request failed', response.status, await response.text().catch(() => ''));
+		throw new HttpError(502, 'AI service is temporarily unavailable');
+	}
 	const reply = extractResponseText(await response.json());
 	if (!reply) throw new HttpError(502, 'AI service returned an empty response');
 	return constrainReply(reply);
