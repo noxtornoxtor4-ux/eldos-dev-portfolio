@@ -22,8 +22,7 @@
 				knowsAbout: ['SvelteKit', 'TypeScript', 'Node.js', 'PostgreSQL', 'AI Systems'],
 				address: {
 					'@type': 'PostalAddress',
-					addressLocality: 'Алматы',
-					addressCountry: 'KZ'
+					addressCountry: 'KG'
 				}
 			}
 		]

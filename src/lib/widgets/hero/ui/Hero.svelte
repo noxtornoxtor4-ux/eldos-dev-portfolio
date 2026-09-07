@@ -1,11 +1,11 @@
 <section class="hero" id="top">
 	<div class="hero__signal" aria-hidden="true">
-		<span>48.0196° N</span>
-		<span>66.9237° E</span>
+		<span>41.2044° N</span>
+		<span>74.7661° E</span>
 	</div>
 
 	<div class="hero__content">
-		<p class="eyebrow"><span></span> ELDOS DEV / FULL-STACK DEVELOPER / ALMATY — REMOTE</p>
+		<p class="eyebrow"><span></span> ELDOS DEV / FULL-STACK DEVELOPER / KYRGYZSTAN — REMOTE</p>
 		<h1>
 			<span>Создаю</span>
 			<span>цифровые</span>

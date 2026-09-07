@@ -8,7 +8,7 @@
 	<title>Eldos Dev — Эльдос, Full-stack разработчик</title>
 	<meta
 		name="description"
-		content="Eldos Dev — портфолио Эльдоса, full-stack разработчика из Алматы. Создаю быстрые цифровые продукты, интерфейсы и надежные backend-системы."
+		content="Eldos Dev — портфолио Эльдоса, full-stack разработчика из Кыргызстана. Создаю быстрые цифровые продукты, интерфейсы и надежные backend-системы."
 	/>
 	<meta name="theme-color" content="#07090d" />
 	<meta name="google-site-verification" content="MZ9Qmt7xl7AkRC2bTvmD_gBVd3jUPf3ZW_JULVCEjYw" />
