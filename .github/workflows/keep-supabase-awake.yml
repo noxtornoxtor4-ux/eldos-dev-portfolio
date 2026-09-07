@@ -1,0 +1,41 @@
+# Supabase pauses a free-tier project after about a week without database
+# activity, and pausing also drops its DNS record — registration, sign-in and
+# the assistant then fail for every visitor, silently. A small daily query is
+# enough to keep the project counted as active.
+#
+# Note: GitHub disables scheduled workflows in a repository with no activity
+# for 60 days. If the repo goes quiet that long, re-enable this from the
+# Actions tab.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query Supabase through the site's public config
+        run: |
+          set -euo pipefail
+
+          # Read the live Supabase URL and anon key from the site's own public
+          # endpoint rather than storing them here, so a key rotation needs no
+          # change to this workflow.
+          config=$(curl -fsS --max-time 30 https://eldos-dev-portfolio.vercel.app/api/config)
+          url=$(printf '%s' "$config" | jq -er .supabaseUrl)
+          key=$(printf '%s' "$config" | jq -er .supabaseAnonKey)
+
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+            -H "apikey: $key" \
+            -H "authorization: Bearer $key" \
+            "$url/rest/v1/profiles?select=id&limit=1")
+
+          echo "Supabase responded with HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase is not answering as expected — the project may be paused."
+            exit 1
+          fi
