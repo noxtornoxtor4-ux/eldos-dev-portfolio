@@ -886,6 +886,90 @@ ul {
 	box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
+.lead-form {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: grid;
+	gap: 12px;
+	width: min(360px, 78%);
+	transform: translate(-50%, -50%);
+}
+
+.project-card--featured .lead-form {
+	width: min(480px, 46%);
+}
+
+.lead-steps {
+	display: flex;
+	gap: 6px;
+	list-style: none;
+	counter-reset: step;
+}
+
+.lead-steps li {
+	flex: 1;
+	padding: 7px 0 7px 8px;
+	border-top: 2px solid color-mix(in srgb, var(--accent) 18%, transparent);
+	font-family: var(--mono);
+	font-size: 8px;
+	letter-spacing: 0.06em;
+	color: #6f7886;
+	counter-increment: step;
+}
+
+.lead-steps li::before {
+	margin-right: 5px;
+	content: counter(step);
+	color: #4a535f;
+}
+
+.lead-steps li.done {
+	border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+	color: #aab3bf;
+}
+
+.lead-steps li.active {
+	border-color: var(--accent);
+	color: var(--text);
+}
+
+.lead-steps li.done::before,
+.lead-steps li.active::before {
+	color: var(--accent);
+}
+
+.lead-subjects {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	list-style: none;
+}
+
+.lead-subjects li {
+	padding: 6px 10px;
+	border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+	font-size: 11px;
+	color: #77818e;
+}
+
+.lead-subjects li.active {
+	border-color: var(--accent);
+	background: color-mix(in srgb, var(--accent) 16%, transparent);
+	color: var(--text);
+}
+
+.lead-message {
+	justify-self: end;
+	max-width: 88%;
+	padding: 10px 13px;
+	border: 1px solid var(--accent);
+	border-radius: 12px 12px 2px 12px;
+	background: color-mix(in srgb, var(--accent) 14%, transparent);
+	font-size: 11px;
+	color: var(--text);
+}
+
 .project-card__body {
 	display: grid;
 	grid-template-columns: 1fr auto;
@@ -2774,7 +2858,8 @@ ul {
 	}
 
 	.clinic-panel,
-	.bot-chat {
+	.bot-chat,
+	.lead-form {
 		width: 88%;
 	}
 
