@@ -26,7 +26,7 @@
 				<div class="clinic-slot"><span>Ближайшее окно</span><b>Сегодня, 17:30</b></div>
 			</div>
 			<div class="visual-status"><span></span> BRANCH / DOCTORS / REVIEWS</div>
-		{:else}
+		{:else if project.visual === 'booking-bot'}
 			<div class="bot-chat">
 				<p class="bot-bubble">Выберите удобное время</p>
 				<ul class="bot-slots">
@@ -37,6 +37,22 @@
 				<p class="bot-bubble bot-bubble--out">12:30</p>
 			</div>
 			<div class="visual-status"><span></span> BOOKED IN TELEGRAM</div>
+		{:else}
+			<div class="lead-form">
+				<ol class="lead-steps">
+					<li class="done">Время</li>
+					<li class="done">Предметы</li>
+					<li class="active">Контакты</li>
+				</ol>
+				<ul class="lead-subjects">
+					<li class="active">Основной тест</li>
+					<li class="active">Математика</li>
+					<li>Химия</li>
+					<li>Биология</li>
+				</ul>
+				<p class="lead-message">Хочу записаться на пробный урок по ОРТ</p>
+			</div>
+			<div class="visual-status"><span></span> SENT TO WHATSAPP</div>
 		{/if}
 	</div>
 

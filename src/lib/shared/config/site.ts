@@ -34,6 +34,19 @@ export const projects: Project[] = [
 		tone: 'magenta',
 		visual: 'booking-bot',
 		href: 'https://t.me/govrim_online_bot'
+	},
+	{
+		id: '03',
+		title: 'Подготовка к ОРТ',
+		category: 'EdTech / Landing Page',
+		description:
+			'Лендинг курсов подготовки к ОРТ в Бишкеке. Заявка на пробный урок собирается в три шага — удобное время, предметы и контакты, — а готовое сообщение сразу открывается в WhatsApp.',
+		result: 'Заявка в WhatsApp за три шага',
+		stack: ['Vite', 'JavaScript', 'WhatsApp'],
+		year: '2026',
+		tone: 'violet',
+		visual: 'lead-form',
+		href: 'https://ort-landing.vercel.app/'
 	}
 ];
 

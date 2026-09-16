@@ -2,7 +2,7 @@ export type ProjectTone = 'cyan' | 'magenta' | 'violet';
 
 // Each project draws its own illustration. Keyed by name rather than by position
 // so reordering the list never swaps the artwork.
-export type ProjectVisual = 'clinic' | 'booking-bot';
+export type ProjectVisual = 'clinic' | 'booking-bot' | 'lead-form';
 
 export type Project = {
 	id: string;
