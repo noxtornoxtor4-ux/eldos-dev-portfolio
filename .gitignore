@@ -25,3 +25,6 @@ vite.config.ts.timestamp-*
 
 # Planning artifacts (kept locally, never committed)
 /docs/superpowers/
+
+# Claude Code local tooling
+/.claude/
