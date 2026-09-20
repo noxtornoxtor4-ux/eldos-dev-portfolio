@@ -970,6 +970,78 @@ ul {
 	color: var(--text);
 }
 
+.tooth-panel {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: grid;
+	gap: 7px;
+	width: min(370px, 78%);
+	transform: translate(-50%, -50%);
+}
+
+.project-card--featured .tooth-panel {
+	width: min(500px, 48%);
+}
+
+.tooth-jaw {
+	font-family: var(--mono);
+	font-size: 8px;
+	letter-spacing: 0.09em;
+	color: #4a535f;
+}
+
+.tooth-row {
+	display: flex;
+	gap: 4px;
+	list-style: none;
+}
+
+.tooth-row li {
+	flex: 1;
+	padding: 7px 0;
+	border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+	font-family: var(--mono);
+	font-size: 9px;
+	text-align: center;
+	color: #77818e;
+}
+
+/* The marked tooth is what the estimate below is calculated from, so it carries the accent. */
+.tooth-row li.active {
+	border-color: var(--accent);
+	background: color-mix(in srgb, var(--accent) 18%, transparent);
+	color: var(--text);
+}
+
+.tooth-estimate {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-top: 5px;
+}
+
+.tooth-estimate div {
+	display: grid;
+	gap: 3px;
+	padding: 9px 11px;
+	border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+	background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.tooth-estimate span {
+	font-family: var(--mono);
+	font-size: 8px;
+	letter-spacing: 0.09em;
+	color: #6f7886;
+}
+
+.tooth-estimate b {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--accent);
+}
+
 .project-card__body {
 	display: grid;
 	grid-template-columns: 1fr auto;
@@ -2859,11 +2931,13 @@ ul {
 
 	.clinic-panel,
 	.bot-chat,
-	.lead-form {
+	.lead-form,
+	.tooth-panel {
 		width: 88%;
 	}
 
-	.clinic-slot b {
+	.clinic-slot b,
+	.tooth-estimate b {
 		font-size: 11px;
 	}
 

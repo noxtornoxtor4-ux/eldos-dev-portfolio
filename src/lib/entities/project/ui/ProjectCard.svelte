@@ -37,6 +37,34 @@
 				<p class="bot-bubble bot-bubble--out">12:30</p>
 			</div>
 			<div class="visual-status"><span></span> BOOKED IN TELEGRAM</div>
+		{:else if project.visual === 'tooth-chart'}
+			<div class="tooth-panel">
+				<span class="tooth-jaw">ВЕРХНЯЯ ЧЕЛЮСТЬ</span>
+				<ul class="tooth-row">
+					<li>17</li>
+					<li class="active">16</li>
+					<li>15</li>
+					<li>14</li>
+					<li>13</li>
+					<li>12</li>
+					<li>11</li>
+				</ul>
+				<span class="tooth-jaw">НИЖНЯЯ ЧЕЛЮСТЬ</span>
+				<ul class="tooth-row">
+					<li>47</li>
+					<li>46</li>
+					<li>45</li>
+					<li>44</li>
+					<li>43</li>
+					<li>42</li>
+					<li>41</li>
+				</ul>
+				<div class="tooth-estimate">
+					<div><span>ВРЕМЯ ПРИЁМА</span><b>45 мин</b></div>
+					<div><span>ОРИЕНТИР ЦЕНЫ</span><b>от 1 500 сом</b></div>
+				</div>
+			</div>
+			<div class="visual-status"><span></span> ESTIMATE BEFORE VISIT</div>
 		{:else}
 			<div class="lead-form">
 				<ol class="lead-steps">
