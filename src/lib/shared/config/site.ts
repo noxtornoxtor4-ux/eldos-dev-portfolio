@@ -47,6 +47,19 @@ export const projects: Project[] = [
 		tone: 'violet',
 		visual: 'lead-form',
 		href: 'https://ort-landing.vercel.app/'
+	},
+	{
+		id: '04',
+		title: 'PHOENIX',
+		category: 'Healthcare / Landing Page',
+		description:
+			'Сайт стоматологии в Караколе: пациент отмечает больной зуб на интерактивной схеме и сразу видит время приёма и ориентир цены. Запись собирается в три шага и уходит готовым сообщением в WhatsApp.',
+		result: 'Смета до визита',
+		stack: ['React', 'Vite', 'PWA'],
+		year: '2026',
+		tone: 'cyan',
+		visual: 'tooth-chart',
+		href: 'https://phoenix-dental-five.vercel.app/'
 	}
 ];
 
