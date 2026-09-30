@@ -35,6 +35,22 @@ body {
 	overflow-x: hidden;
 }
 
+/* SvelteKit's body wrapper in app.html. It must not form a box of its own. */
+.app-root {
+	display: contents;
+}
+
+/* SvelteKit's route announcer applies these as an inline style attribute, which the CSP blocks.
+   Declaring them here keeps it hidden from sight without loosening style-src. */
+#svelte-announcer {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
 body::selection {
 	color: #050609;
 	background: var(--cyan);

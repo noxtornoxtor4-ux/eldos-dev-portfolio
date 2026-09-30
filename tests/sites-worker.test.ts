@@ -62,6 +62,21 @@ describe('Sites worker account APIs', () => {
 		expect(new URL(assetFetch.mock.calls[0][0].url).pathname).toBe(assetPath);
 	});
 
+	it.each(['/', '/privacy', '/some/asset.js'])(
+		'sends the security headers with the page served at %s',
+		async (path) => {
+			const assetFetch = vi.fn(async () => new Response('<!doctype html>'));
+			const response = await worker.fetch(request(path), { ...env, ASSETS: { fetch: assetFetch } });
+
+			expect(response.headers.get('x-frame-options')).toBe('DENY');
+			expect(response.headers.get('content-security-policy')).toBe("frame-ancestors 'none'");
+			expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+			expect(response.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
+			expect(response.headers.get('cross-origin-opener-policy')).toBe('same-origin');
+			expect(response.headers.get('permissions-policy')).toContain('camera=()');
+		}
+	);
+
 	it('returns public Supabase configuration without server secrets', async () => {
 		const response = await worker.fetch(request('/api/config'), env);
 		const data = await response.json();
@@ -138,8 +153,11 @@ describe('Sites worker account APIs', () => {
 
 		expect(response.status).toBe(200);
 		const responseData = await response.json();
-		const contextCall = fetchMock.mock.calls.find(([url]) =>
-			String(url).includes('/rest/v1/chat_messages?')
+		// The quota probe also queries chat_messages, so match the history query by its columns.
+		const contextCall = fetchMock.mock.calls.find(
+			([url]) =>
+				String(url).includes('/rest/v1/chat_messages?') &&
+				String(url).includes('select=role,content')
 		);
 		const contextUrl = String(contextCall?.[0]);
 		expect(contextUrl).toContain(`user_id=eq.${user.id}`);
@@ -238,6 +256,34 @@ describe('Sites worker account APIs', () => {
 		expect(telegramText.length).toBeLessThanOrEqual(4096);
 		// A cut must never land inside an entity, which would break parse_mode: 'HTML'.
 		expect(telegramText).not.toMatch(/&[a-z]*…/);
+	});
+
+	it('throttles an authenticated visitor who floods the chat, before paying for Groq', async () => {
+		const quota = Array.from({ length: 20 }, (_, index) => ({ id: `msg-${index}` }));
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.endsWith('/auth/v1/user')) return Response.json(user);
+			// The quota probe is the chat_messages query that selects ids for the user's own turns.
+			if (url.includes('/rest/v1/chat_messages?') && url.includes('select=id')) {
+				return Response.json(quota);
+			}
+			return new Response(null, { status: 404 });
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const response = await worker.fetch(
+			request('/api/chat', {
+				method: 'POST',
+				headers: authHeaders({ 'content-type': 'application/json' }),
+				body: JSON.stringify({ message: 'Ещё один вопрос' })
+			}),
+			env
+		);
+
+		expect(response.status).toBe(429);
+		const called = fetchMock.mock.calls.map(([url]) => String(url));
+		expect(called.some((url) => url.includes('api.groq.com'))).toBe(false);
+		expect(called.some((url) => url.includes('api.telegram.org'))).toBe(false);
 	});
 
 	it('rejects authenticated chat when Groq is not configured', async () => {

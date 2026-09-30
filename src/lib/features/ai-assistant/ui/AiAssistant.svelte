@@ -135,10 +135,10 @@
 				created_at: new Date().toISOString()
 			});
 		} catch (reason) {
-			error =
-				reason instanceof AccountApiError && reason.status === 401
-					? 'Сессия завершена. Войдите снова.'
-					: 'Связь временно недоступна. Напишите на noxtornoxtor4@gmail.com';
+			const status = reason instanceof AccountApiError ? reason.status : 0;
+			if (status === 401) error = 'Сессия завершена. Войдите снова.';
+			else if (status === 429) error = 'Слишком много сообщений подряд. Продолжите через час.';
+			else error = 'Связь временно недоступна. Напишите на noxtornoxtor4@gmail.com';
 		} finally {
 			isSending = false;
 		}
