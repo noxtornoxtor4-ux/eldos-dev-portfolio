@@ -87,6 +87,27 @@ async function loadRecentMessages(env, userId) {
 	return Array.isArray(rows) ? rows.reverse() : [];
 }
 
+// Signing up is open, and every accepted chat turn costs a Groq call plus a Telegram notification.
+// Without a cap one account can drain the AI quota and flood the owner's Telegram. The stored
+// messages are counted directly, so there is no separate counter to keep in sync; asking for at
+// most CHAT_WINDOW_LIMIT ids keeps the check cheap.
+const CHAT_WINDOW_MS = 60 * 60 * 1000;
+const CHAT_WINDOW_LIMIT = 20;
+
+/** @param {Env} env @param {string} userId */
+async function assertChatQuota(env, userId) {
+	const since = new Date(Date.now() - CHAT_WINDOW_MS).toISOString();
+	const response = await serviceRequest(
+		env,
+		`/rest/v1/chat_messages?user_id=eq.${encodeURIComponent(userId)}&role=eq.user` +
+			`&created_at=gte.${encodeURIComponent(since)}&select=id&limit=${CHAT_WINDOW_LIMIT}`
+	);
+	const rows = await response.json();
+	if (Array.isArray(rows) && rows.length >= CHAT_WINDOW_LIMIT) {
+		throw new HttpError(429, 'Too many messages. Try again later.');
+	}
+}
+
 /** @param {unknown} payload */
 function extractResponseText(payload) {
 	const data = /** @type {ResponsePayload} */ (
@@ -298,6 +319,10 @@ async function handleChat(request, env) {
 		throw new HttpError(400, 'Message must contain 2–1200 characters');
 	}
 
+	// Checked after validation so a malformed request never counts against the visitor, and before
+	// the Groq call so a throttled request costs nothing.
+	await assertChatQuota(env, user.id);
+
 	const [profile, history] = await Promise.all([
 		loadProfile(env, user.id),
 		loadRecentMessages(env, user.id)
@@ -361,6 +386,31 @@ async function handleApi(request, env, pathname) {
 	}
 }
 
+// vercel.json carries these on the Vercel deployment. This worker serves the same pages from the
+// other hosting target, so it has to set them itself. The content policy travels in a <meta> tag
+// inside each prerendered page; frame-ancestors cannot, which is why it is repeated here.
+const securityHeaders = {
+	'x-frame-options': 'DENY',
+	'content-security-policy': "frame-ancestors 'none'",
+	'x-content-type-options': 'nosniff',
+	'referrer-policy': 'strict-origin-when-cross-origin',
+	'cross-origin-opener-policy': 'same-origin',
+	'permissions-policy':
+		'accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()'
+};
+
+/** @param {Response} response */
+function withSecurityHeaders(response) {
+	// The asset response is immutable, so it is copied before the headers are added.
+	const headers = new Headers(response.headers);
+	for (const [key, value] of Object.entries(securityHeaders)) headers.set(key, value);
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers
+	});
+}
+
 const worker = {
 	/** @param {Request} request @param {Env} env */
 	async fetch(request, env) {
@@ -368,7 +418,7 @@ const worker = {
 		if (url.pathname.startsWith('/api/')) return handleApi(request, env, url.pathname);
 		if (url.pathname === '/') {
 			url.pathname = '/site';
-			return env.ASSETS.fetch(new Request(url, request));
+			return withSecurityHeaders(await env.ASSETS.fetch(new Request(url, request)));
 		}
 		const prerenderedPage = {
 			'/privacy': '/privacy.html',
@@ -376,9 +426,9 @@ const worker = {
 		}[url.pathname];
 		if (prerenderedPage) {
 			url.pathname = prerenderedPage;
-			return env.ASSETS.fetch(new Request(url, request));
+			return withSecurityHeaders(await env.ASSETS.fetch(new Request(url, request)));
 		}
-		return env.ASSETS.fetch(request);
+		return withSecurityHeaders(await env.ASSETS.fetch(request));
 	}
 };
 
