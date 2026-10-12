@@ -60,6 +60,19 @@ export const projects: Project[] = [
 		tone: 'cyan',
 		visual: 'tooth-chart',
 		href: 'https://phoenix-dental-five.vercel.app/'
+	},
+	{
+		id: '05',
+		title: 'Волна',
+		category: 'Volunteering / Web App',
+		description:
+			'Платформа, которая связывает волонтёров и организации: заявки на мероприятия, профиль с навыками и часы, которые подтверждает организатор. Из подтверждённых часов собирается сертификат, и любой может проверить его по ссылке.',
+		result: 'Часы с подтверждением',
+		stack: ['SvelteKit', 'Firebase', 'PWA'],
+		year: '2026',
+		tone: 'magenta',
+		visual: 'volunteer-hours',
+		href: 'https://volna09.vercel.app/'
 	}
 ];
 

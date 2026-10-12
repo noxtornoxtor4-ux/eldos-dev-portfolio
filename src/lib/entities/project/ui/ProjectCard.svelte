@@ -65,6 +65,19 @@
 				</div>
 			</div>
 			<div class="visual-status"><span></span> ESTIMATE BEFORE VISIT</div>
+		{:else if project.visual === 'volunteer-hours'}
+			<div class="hours-panel">
+				<ul class="hours-log">
+					<li><span>Эко-акция «Чистый берег»</span><b>6 ч</b></li>
+					<li><span>Приют «Умут»</span><b>8 ч</b></li>
+					<li><span>Тренинг «Первая помощь»</span><b>4 ч</b></li>
+				</ul>
+				<div class="hours-total">
+					<div><span>ПОДТВЕРЖДЕНО</span><b>18 ч</b></div>
+					<div><span>СЕРТИФИКАТ</span><b>проверен</b></div>
+				</div>
+			</div>
+			<div class="visual-status"><span></span> HOURS CONFIRMED BY ORG</div>
 		{:else}
 			<div class="lead-form">
 				<ol class="lead-steps">
