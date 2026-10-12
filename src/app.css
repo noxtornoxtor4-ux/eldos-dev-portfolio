@@ -1058,6 +1058,69 @@ ul {
 	color: var(--accent);
 }
 
+.hours-panel {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: grid;
+	gap: 10px;
+	width: min(370px, 78%);
+	transform: translate(-50%, -50%);
+}
+
+.project-card--featured .hours-panel {
+	width: min(500px, 48%);
+}
+
+.hours-log {
+	list-style: none;
+}
+
+.hours-log li {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--line);
+	font-size: 11px;
+	color: #77818e;
+}
+
+.hours-log b {
+	font-family: var(--mono);
+	font-size: 11px;
+	font-weight: 400;
+	color: var(--text);
+}
+
+.hours-total {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.hours-total div {
+	display: grid;
+	gap: 3px;
+	padding: 9px 11px;
+	border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+	background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.hours-total span {
+	font-family: var(--mono);
+	font-size: 8px;
+	letter-spacing: 0.09em;
+	color: #6f7886;
+}
+
+.hours-total b {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--accent);
+}
+
 .project-card__body {
 	display: grid;
 	grid-template-columns: 1fr auto;
@@ -2948,12 +3011,14 @@ ul {
 	.clinic-panel,
 	.bot-chat,
 	.lead-form,
-	.tooth-panel {
+	.tooth-panel,
+	.hours-panel {
 		width: 88%;
 	}
 
 	.clinic-slot b,
-	.tooth-estimate b {
+	.tooth-estimate b,
+	.hours-total b {
 		font-size: 11px;
 	}
 
