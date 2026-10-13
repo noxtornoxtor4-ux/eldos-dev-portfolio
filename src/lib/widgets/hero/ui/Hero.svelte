@@ -1,55 +1,57 @@
-<section class="hero" id="top">
-	<div class="hero__signal" aria-hidden="true">
+<section class="hero is-night" id="top">
+	<div class="hero__coords" aria-hidden="true">
 		<span>41.2044° N</span>
 		<span>74.7661° E</span>
 	</div>
 
-	<div class="hero__content">
-		<p class="eyebrow"><span></span> ELDOS DEV / FULL-STACK DEVELOPER / KYRGYZSTAN — REMOTE</p>
-		<h1>
+	<p class="hero__eyebrow meta-label">
+		<i></i> Eldos Dev · Full-stack developer · Kyrgyzstan — Remote
+	</p>
+
+	<ul class="hero__cast" aria-label="Основной стек">
+		<li>SvelteKit</li>
+		<li>TypeScript</li>
+		<li>Node.js</li>
+		<li>PostgreSQL</li>
+	</ul>
+
+	<!-- The monogram sits on the disc in front of the headline, the way the reference layers its
+	     subject over the title. The headline stays a single h1 so screen readers read it as one. -->
+	<div class="hero__stage">
+		<h1 class="display hero__title">
 			<span>Создаю</span>
 			<span>цифровые</span>
-			<span class="hero__outline" data-text="системы.">системы.</span>
+			<span>системы</span>
 		</h1>
+		<div class="hero__subject" aria-hidden="true">
+			<span class="hero__disc"></span>
+			<span class="hero__monogram">E</span>
+		</div>
+		<span class="hero__year" aria-hidden="true">[2026]</span>
+	</div>
 
-		<div class="hero__bottom">
+	<div class="hero__perf" aria-hidden="true"></div>
+
+	<div class="hero__foot">
+		<div class="hero__story">
+			<p class="meta-label"><i></i> Чем занимаюсь</p>
 			<p>
 				Превращаю сложные идеи в быстрые и понятные продукты — от интерфейса до надежной
 				архитектуры.
 			</p>
-			<div class="hero__actions">
-				<a class="button button--primary" href="#projects"><span>Смотреть проекты</span><i>↘</i></a>
-				<a class="button button--ghost" href="#contact">Обсудить задачу</a>
-			</div>
+		</div>
+
+		<ul class="hero__badges" aria-label="Коротко о себе">
+			<li><strong>5+</strong><span>лет опыта</span></li>
+			<li class="hero__badges--accent"><strong>30+</strong><span>релизов</span></li>
+			<li><strong>∞</strong><span>любопытство</span></li>
+		</ul>
+
+		<div class="hero__actions">
+			<a class="pill pill--light" href="#projects">Смотреть проекты <i>↗</i></a>
+			<a class="pill pill--ghost" href="#contact">Обсудить задачу</a>
 		</div>
 	</div>
-
-	<aside class="system-card" aria-label="Профиль разработчика">
-		<div class="system-card__head">
-			<span>PROFILE.SYS</span>
-			<span class="system-card__live">LIVE</span>
-		</div>
-		<div class="system-card__portrait" aria-hidden="true">
-			<div class="portrait-rings"><i></i><i></i><i></i></div>
-			<div class="portrait-monogram">E</div>
-			<span class="scan-beam"></span>
-			<small>IDENTITY VERIFIED</small>
-		</div>
-		<div class="system-card__code">
-			<p><span>01</span><b>const</b> developer = {'{'}</p>
-			<p><span>02</span>&nbsp;&nbsp;name: <em>'Эльдос'</em>,</p>
-			<p><span>03</span>&nbsp;&nbsp;focus: <em>'impact'</em>,</p>
-			<p><span>04</span>&nbsp;&nbsp;status: <em>'building'</em></p>
-			<p><span>05</span>};</p>
-		</div>
-		<div class="system-card__stats">
-			<div><strong>5+</strong><span>лет опыта</span></div>
-			<div><strong>30+</strong><span>релизов</span></div>
-			<div><strong>∞</strong><span>любопытство</span></div>
-		</div>
-	</aside>
-
-	<a class="scroll-cue" href="#projects"><span>SCROLL_TO_EXPLORE</span><i></i></a>
 </section>
 
 <div class="ticker" aria-hidden="true">
